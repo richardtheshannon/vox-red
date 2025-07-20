@@ -1,0 +1,111 @@
+/* Basic CSS Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Variables for colors and fonts */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  --primary-color: #646cff;
+  --background-color: #242424;
+  --container-bg-color: #2d2d2d;
+  --input-bg-color: #3c3c3c;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --border-radius: 8px;
+}
+
+/* Main body styling */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+/* Centered container for the whole app */
+.container {
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 1rem;
+}
+
+/* Form container styling */
+.form-container {
+  background-color: var(--container-bg-color);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+  font-size: 2.2em;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+/* Input field styling */
+input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+  font-size: 1em;
+  transition: border-color 0.25s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Button styling */
+button {
+  width: 100%;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  padding: 0.8rem 1rem;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+button:hover {
+  background-color: #535bf2;
+}
+
+/* Toggle button for switching between login/register */
+.toggle-button {
+  background-color: transparent;
+  border: none;
+  color: var(--primary-color);
+  margin-top: 1.5rem;
+  font-weight: bold;
+}
+
+.toggle-button:hover {
+  text-decoration: underline;
+}

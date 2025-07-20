@@ -1,0 +1,22 @@
+# Dependencies
+/node_modules
+/backend/node_modules
+/frontend/node_modules
+
+# Strapi / Backend
+/backend/.cache
+/backend/build
+/backend/database/data.db
+/backend/.env
+
+# Vite / Frontend
+/frontend/dist
+/frontend/.env.local
+/frontend/.env.*.local
+
+# IDE config
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db
