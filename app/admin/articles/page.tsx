@@ -4,6 +4,8 @@ import ArticlesList from '@/app/components/admin/ArticlesList'
 import Button from '@/app/components/ui/Button'
 import { prisma } from '@/app/lib/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ArticlesPage() {
   const articles = await prisma.article.findMany({
     orderBy: { orderPosition: 'asc' },

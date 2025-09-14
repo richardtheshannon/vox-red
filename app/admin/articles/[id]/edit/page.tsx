@@ -3,6 +3,8 @@ import AdminLayout from '@/app/components/ui/AdminLayout'
 import ArticleForm from '@/app/components/admin/ArticleForm'
 import { prisma } from '@/app/lib/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditArticlePage({
   params,
 }: {
