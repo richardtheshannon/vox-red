@@ -8,7 +8,8 @@
       "Bash(createdb:*)",
       "Bash(npm run:*)",
       "Bash(findstr:*)",
-      "Bash(del .env)"
+      "Bash(del .env)",
+      "Bash(git remote add:*)"
     ],
     "deny": [],
     "ask": []
