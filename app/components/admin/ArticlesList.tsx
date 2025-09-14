@@ -11,7 +11,7 @@ interface Article {
   title: string
   subtitle?: string | null
   orderPosition: number
-  updatedAt: string
+  updatedAt: Date
 }
 
 interface ArticlesListProps {
