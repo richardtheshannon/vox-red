@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import Button from '../ui/Button'
 import { useRouter } from 'next/navigation'
 
@@ -27,7 +27,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     setArticles(initialArticles)
   }, [initialArticles])
 
-  const handleDragEnd = async (result: { destination?: { index: number }, source: { index: number } }) => {
+  const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return
 
     const items = Array.from(articles)
