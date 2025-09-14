@@ -3,6 +3,7 @@ FROM node:18-alpine AS base
 # Install dependencies only when needed
 # Railway deployment fix: using --legacy-peer-deps for React 19 compatibility
 # Force dynamic rendering fix applied
+# Railway uses PORT env var automatically
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -44,8 +45,6 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 USER nextjs
 
 EXPOSE 3000
-
-ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
