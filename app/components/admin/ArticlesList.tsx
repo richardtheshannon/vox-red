@@ -27,7 +27,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     setArticles(initialArticles)
   }, [initialArticles])
 
-  const handleDragEnd = async (result: any) => {
+  const handleDragEnd = async (result: { destination?: { index: number }, source: { index: number } }) => {
     if (!result.destination) return
 
     const items = Array.from(articles)

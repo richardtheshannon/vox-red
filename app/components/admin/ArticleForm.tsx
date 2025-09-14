@@ -55,7 +55,7 @@ export default function ArticleForm({ article }: ArticleFormProps) {
 
       router.push('/admin/articles')
       router.refresh()
-    } catch (error) {
+    } catch {
       setError('Failed to save article. Please try again.')
     } finally {
       setIsSubmitting(false)

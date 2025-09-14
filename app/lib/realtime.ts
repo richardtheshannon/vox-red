@@ -11,13 +11,13 @@ export class SSEManager {
     }
   }
 
-  broadcast(data: any) {
+  broadcast(data: object) {
     const message = `data: ${JSON.stringify(data)}\n\n`
     
     this.clients.forEach((controller) => {
       try {
         controller.enqueue(message)
-      } catch (error) {
+      } catch {
         this.clients.delete(controller)
       }
     })

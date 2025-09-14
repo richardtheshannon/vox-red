@@ -101,7 +101,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           '--swiper-pagination-color': '#ffffff',
           '--swiper-pagination-bullet-inactive-color': '#ffffff',
           '--swiper-pagination-bullet-inactive-opacity': '0.5',
-        } as any}
+        } as React.CSSProperties}
       >
         {articles.map((article) => (
           <SwiperSlide key={article.id} className="bg-gradient-to-br from-gray-50 to-gray-100">
