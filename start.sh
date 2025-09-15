@@ -8,7 +8,7 @@ npx prisma db push --skip-generate
 echo "Seeding database with admin user..."
 echo "Admin Email: $ADMIN_EMAIL"
 echo "Admin Password is set: $([ -n "$ADMIN_PASSWORD" ] && echo "Yes" || echo "No")"
-npm run db:seed || echo "Seed script failed, but continuing..."
+node prisma/seed.js || echo "Seed script failed, but continuing..."
 
 # Start the Next.js application
 echo "Starting Next.js application..."
