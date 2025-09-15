@@ -7,18 +7,23 @@ async function main() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
+  console.log('Seeding with admin email:', adminEmail)
+  console.log('Password length:', adminPassword.length)
+
   const hashedPassword = await bcrypt.hash(adminPassword, 10)
 
   const user = await prisma.user.upsert({
     where: { email: adminEmail },
-    update: {},
+    update: {
+      passwordHash: hashedPassword,
+    },
     create: {
       email: adminEmail,
       passwordHash: hashedPassword,
     },
   })
 
-  console.log('Admin user created:', user.email)
+  console.log('Admin user upserted successfully:', user.email)
 
   const articlesCount = await prisma.article.count()
   
