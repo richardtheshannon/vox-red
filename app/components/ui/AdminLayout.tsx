@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 import Button from './Button'
 import { cn } from '@/app/lib/utils'
 
@@ -12,6 +13,28 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname()
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    // Check localStorage and system preference
+    const savedTheme = localStorage.getItem('theme')
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    if (savedTheme) {
+      setTheme(savedTheme as 'light' | 'dark')
+    } else if (systemPrefersDark) {
+      setTheme('dark')
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
+    document.documentElement.classList.toggle('dark')
+  }
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard' },
@@ -47,17 +70,35 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 ))}
               </div>
             </div>
-            <div className="flex items-center">
-              <Link href="/" target="_blank" className="mr-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                View Site
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            <div className="flex items-center space-x-2">
+              <Link
+                href="/"
+                target="_blank"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                title="View Site"
               >
-                Sign Out
-              </Button>
+                <span className="material-icons text-xl">open_in_new</span>
+              </Link>
+
+              {mounted && (
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  title="Toggle Theme"
+                >
+                  <span className="material-icons text-xl">
+                    {theme === 'light' ? 'dark_mode' : 'light_mode'}
+                  </span>
+                </button>
+              )}
+
+              <button
+                onClick={() => signOut({ callbackUrl: '/admin/login' })}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                title="Sign Out"
+              >
+                <span className="material-icons text-xl">logout</span>
+              </button>
             </div>
           </div>
         </div>

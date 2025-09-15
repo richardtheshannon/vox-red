@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
-export default function ThemeToggle() {
+export default function ConditionalThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
@@ -30,18 +30,15 @@ export default function ThemeToggle() {
     document.documentElement.classList.toggle('dark')
   }
 
-  if (!mounted) return null
-
+  // Don't show on admin pages (AdminLayout handles it)
   const isAdminPage = pathname?.startsWith('/admin')
+
+  if (!mounted || isAdminPage) return null
 
   return (
     <button
       onClick={toggleTheme}
-      className={`fixed z-50 p-2 transition-opacity hover:opacity-70 ${
-        isAdminPage
-          ? 'top-20 right-4 sm:top-4 sm:right-20'
-          : 'top-4 right-4'
-      }`}
+      className="fixed top-4 right-4 z-50 p-2 transition-opacity hover:opacity-70"
       aria-label="Toggle theme"
     >
       <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">

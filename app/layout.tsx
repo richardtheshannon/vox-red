@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Unica_One, Crimson_Text } from "next/font/google";
 import "./globals.css";
 import SessionProvider from './components/providers/SessionProvider';
-import ThemeToggle from './components/ThemeToggle';
+import ConditionalThemeToggle from './components/ConditionalThemeToggle';
 
 const unicaOne = Unica_One({
   weight: '400',
@@ -35,7 +35,7 @@ export default function RootLayout({
         className={`${unicaOne.variable} ${crimsonText.variable} antialiased`}
       >
         <SessionProvider>
-          <ThemeToggle />
+          <ConditionalThemeToggle />
           {children}
         </SessionProvider>
       </body>

@@ -13,18 +13,18 @@ export default function ArticleSlide({ article }: ArticleSlideProps) {
   return (
     <div className="h-full flex flex-col justify-center items-center p-6 md:p-12">
       <div className="max-w-4xl mx-auto text-center space-y-6">
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+        <h1 className="font-bold text-gray-900 dark:text-gray-100 leading-tight responsive-title">
           {article.title}
         </h1>
 
         {article.subtitle && (
-          <p className="text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 font-medium">
+          <p className="text-gray-600 dark:text-gray-400 font-medium responsive-subtitle">
             {article.subtitle}
           </p>
         )}
 
         <div
-          className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed prose prose-lg dark:prose-invert mx-auto max-w-none"
+          className="text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert mx-auto max-w-none responsive-content"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
       </div>

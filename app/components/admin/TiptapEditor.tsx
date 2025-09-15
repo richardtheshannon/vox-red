@@ -46,8 +46,8 @@ export default function TiptapEditor({ content, onChange }: TiptapEditorProps) {
   }
 
   return (
-    <div className="border border-gray-300 rounded-lg">
-      <div className="border-b border-gray-300 p-2 flex flex-wrap gap-1">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
+      <div className="border-b border-gray-300 dark:border-gray-600 p-2 flex flex-wrap gap-1">
         <Button
           type="button"
           variant={editor.isActive('bold') ? 'primary' : 'secondary'}
@@ -121,9 +121,9 @@ export default function TiptapEditor({ content, onChange }: TiptapEditorProps) {
           Image
         </Button>
       </div>
-      <EditorContent 
-        editor={editor} 
-        className="prose max-w-none p-4 min-h-[300px] focus:outline-none"
+      <EditorContent
+        editor={editor}
+        className="prose dark:prose-invert max-w-none p-4 min-h-[300px] focus:outline-none text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
       />
     </div>
   )

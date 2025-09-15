@@ -178,3 +178,82 @@ div[style*="z-index: 9999"] {
 body > div:last-of-type[style*="fixed"] {
   display: none !important;
 }
+
+/* Responsive typography using viewport units */
+.responsive-title {
+  font-size: clamp(2rem, 8vw, 12vh);
+  font-size: min(8vw, 12vh);
+}
+
+.responsive-subtitle {
+  font-size: clamp(1.2rem, 4vw, 6vh);
+  font-size: min(4vw, 6vh);
+}
+
+.responsive-content {
+  font-size: clamp(1rem, 2.5vw, 4vh);
+  font-size: min(2.5vw, 4vh);
+}
+
+.responsive-content h1 {
+  font-size: clamp(1.8rem, 6vw, 10vh);
+  font-size: min(6vw, 10vh);
+}
+
+.responsive-content h2 {
+  font-size: clamp(1.5rem, 5vw, 8vh);
+  font-size: min(5vw, 8vh);
+}
+
+.responsive-content h3 {
+  font-size: clamp(1.25rem, 4vw, 6vh);
+  font-size: min(4vw, 6vh);
+}
+
+.responsive-content p {
+  font-size: clamp(1rem, 2.5vw, 4vh);
+  font-size: min(2.5vw, 4vh);
+  line-height: 1.6;
+}
+
+/* Tiptap Editor Dark Mode Styles */
+.ProseMirror {
+  color: rgb(17 24 39) !important;
+}
+
+.dark .ProseMirror {
+  color: rgb(243 244 246) !important;
+  background-color: rgb(31 41 55) !important;
+}
+
+.ProseMirror p {
+  margin: 0.75rem 0;
+}
+
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+  font-family: var(--font-unica-one), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.dark .ProseMirror h1,
+.dark .ProseMirror h2,
+.dark .ProseMirror h3 {
+  color: rgb(243 244 246) !important;
+}
+
+.ProseMirror blockquote {
+  border-left: 3px solid rgb(156 163 175);
+  padding-left: 1rem;
+  margin-left: 0;
+}
+
+.dark .ProseMirror blockquote {
+  border-left-color: rgb(75 85 99);
+  color: rgb(209 213 219);
+}
+
+/* Override .bg-white in dark mode */
+.dark .bg-white {
+  background-color: #111827 !important;
+}
