@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Unica_One, Crimson_Text } from "next/font/google";
 import "./globals.css";
 import SessionProvider from './components/providers/SessionProvider';
+import ThemeToggle from './components/ThemeToggle';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const unicaOne = Unica_One({
+  weight: '400',
+  variable: "--font-unica-one",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const crimsonText = Crimson_Text({
+  weight: ['400', '600', '700'],
+  variable: "--font-crimson-text",
   subsets: ["latin"],
 });
 
@@ -25,10 +28,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${unicaOne.variable} ${crimsonText.variable} antialiased`}
       >
         <SessionProvider>
+          <ThemeToggle />
           {children}
         </SessionProvider>
       </body>

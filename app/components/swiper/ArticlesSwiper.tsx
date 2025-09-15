@@ -50,10 +50,10 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
 
   if (articles.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome</h1>
-          <p className="text-gray-600">No articles available at the moment.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">Welcome</h1>
+          <p className="text-gray-600 dark:text-gray-400">No articles available at the moment.</p>
         </div>
       </div>
     )
@@ -61,23 +61,6 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
 
   return (
     <div className="h-screen w-full relative">
-      {/* Connection Status */}
-      <div className="absolute top-4 right-4 z-50 space-y-2">
-        <div className={`px-3 py-1 rounded-full text-sm ${
-          isConnected 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {isConnected ? '🟢 Live' : '🔴 Disconnected'}
-        </div>
-        
-        {isLoading && (
-          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-            Updating content...
-          </div>
-        )}
-      </div>
-      
       <Swiper
         modules={[Navigation, Pagination, Keyboard, Mousewheel]}
         direction="vertical"
@@ -104,21 +87,11 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         } as React.CSSProperties}
       >
         {articles.map((article) => (
-          <SwiperSlide key={article.id} className="bg-gradient-to-br from-gray-50 to-gray-100">
+          <SwiperSlide key={article.id} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
             <ArticleSlide article={article} />
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* Admin link */}
-      <div className="absolute top-4 left-4 z-50">
-        <a
-          href="/admin/login"
-          className="bg-black bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded text-sm transition-colors"
-        >
-          Admin
-        </a>
-      </div>
     </div>
   )
 }

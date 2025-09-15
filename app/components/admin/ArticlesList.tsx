@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
+import dynamic from 'next/dynamic'
+import { DropResult } from 'react-beautiful-dnd'
+
+const DragDropContext = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.DragDropContext),
+  { ssr: false }
+)
+const Droppable = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.Droppable),
+  { ssr: false }
+)
+const Draggable = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.Draggable),
+  { ssr: false }
+)
 import Button from '../ui/Button'
 import { useRouter } from 'next/navigation'
 
@@ -89,7 +103,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="articles" isDropDisabled={false}>
+      <Droppable droppableId="articles" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
         {(provided) => (
           <div
             {...provided.droppableProps}
@@ -107,7 +121,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`bg-white p-4 rounded-lg shadow ${
+                    className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow ${
                       snapshot.isDragging ? 'shadow-lg opacity-90' : ''
                     } ${isReordering ? 'opacity-50' : ''}`}
                   >
@@ -115,18 +129,18 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                       <div className="flex items-center space-x-4">
                         <div
                           {...provided.dragHandleProps}
-                          className="cursor-move text-gray-400 hover:text-gray-600"
+                          className="cursor-move text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                         >
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                           </svg>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900">{article.title}</h3>
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
                           {article.subtitle && (
-                            <p className="text-sm text-gray-500">{article.subtitle}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{article.subtitle}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             Updated {new Date(article.updatedAt).toLocaleDateString()}
                           </p>
                         </div>

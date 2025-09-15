@@ -7,17 +7,24 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-crimson-text), serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Apply Unica One font to all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-unica-one), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Custom animations and transitions */
@@ -70,23 +77,32 @@ body {
 }
 
 .prose h1 {
+  font-family: var(--font-unica-one), sans-serif;
   font-size: 2.25rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin-bottom: 1rem;
   line-height: 1.2;
 }
 
 .prose h2 {
+  font-family: var(--font-unica-one), sans-serif;
   font-size: 1.875rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin-top: 2rem;
   margin-bottom: 1rem;
   line-height: 1.3;
 }
 
 .prose h3 {
+  font-family: var(--font-unica-one), sans-serif;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   line-height: 1.4;
@@ -139,4 +155,26 @@ body {
 
 .swiper-pagination-bullet-active {
   opacity: 1 !important;
+}
+
+/* Hide Next.js development indicators */
+[data-nextjs-data-runtime-error-collapsed-action],
+[id^="__next-build-watcher"],
+[id="__nextjs__container"],
+div[style*="fixed"][style*="bottom: 1rem"][style*="left: 1rem"],
+div[style*="fixed"][style*="bottom: 16px"][style*="left: 16px"],
+div[style*="position: fixed"][style*="bottom: 1rem"][style*="left: 1rem"],
+div[style*="position:fixed"][style*="bottom:1rem"][style*="left:1rem"],
+#__next-build-watcher,
+.__nextjs_error_toast__,
+nextjs-portal,
+[id*="nextjs"],
+[class*="nextjs"],
+div[style*="z-index: 9999"] {
+  display: none !important;
+}
+
+/* More aggressive hiding for development indicators in bottom left */
+body > div:last-of-type[style*="fixed"] {
+  display: none !important;
 }
