@@ -5,7 +5,7 @@ import { sseManager } from '@/app/lib/realtime'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -17,6 +17,7 @@ export async function PATCH(
       )
     }
 
+    const { id } = await params
     const { published } = await request.json()
 
     if (typeof published !== 'boolean') {
@@ -28,12 +29,12 @@ export async function PATCH(
 
     // Update the article's published status
     const updatedArticle = await prisma.article.update({
-      where: { id: params.id },
+      where: { id },
       data: { published }
     })
 
     // Notify all clients about the change
-    sseManager.notifyArticleChange('updated', params.id)
+    sseManager.notifyArticleChange('updated', id)
 
     return NextResponse.json({
       success: true,

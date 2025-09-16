@@ -9,7 +9,8 @@
       "Bash(npm run:*)",
       "Bash(findstr:*)",
       "Bash(del .env)",
-      "Bash(git remote add:*)"
+      "Bash(git remote add:*)",
+      "Bash(timeout 60 npm run build)"
     ],
     "deny": [],
     "ask": []
