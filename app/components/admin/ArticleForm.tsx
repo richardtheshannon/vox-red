@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Input from '../ui/Input'
@@ -16,18 +16,47 @@ interface ArticleFormProps {
     content: string
     textAlign?: string
     verticalAlign?: string
+    parentId?: string | null
   }
+  allArticles?: Array<{
+    id: string
+    title: string
+    parentId?: string | null
+  }>
 }
 
-export default function ArticleForm({ article }: ArticleFormProps) {
+export default function ArticleForm({ article, allArticles }: ArticleFormProps) {
   const router = useRouter()
   const [title, setTitle] = useState(article?.title || '')
   const [subtitle, setSubtitle] = useState(article?.subtitle || '')
   const [content, setContent] = useState(article?.content || '')
   const [textAlign, setTextAlign] = useState(article?.textAlign || 'left')
   const [verticalAlign, setVerticalAlign] = useState(article?.verticalAlign || 'center')
+  const [parentId, setParentId] = useState<string | null>(article?.parentId || null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [availableArticles, setAvailableArticles] = useState<typeof allArticles>([])
+
+  useEffect(() => {
+    // Fetch main articles to use as parent options
+    const fetchArticles = async () => {
+      try {
+        const response = await fetch('/api/articles')
+        if (response.ok) {
+          const articles = await response.json()
+          // Only show main articles as parent options
+          setAvailableArticles(articles.filter((a: { parentId?: string | null, id: string }) => !a.parentId && a.id !== article?.id))
+        }
+      } catch (error) {
+        console.error('Error fetching articles:', error)
+      }
+    }
+    if (!allArticles) {
+      fetchArticles()
+    } else {
+      setAvailableArticles(allArticles.filter(a => !a.parentId && a.id !== article?.id))
+    }
+  }, [article?.id, allArticles])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +81,7 @@ export default function ArticleForm({ article }: ArticleFormProps) {
           content,
           textAlign,
           verticalAlign,
+          parentId: parentId || null,
         }),
       })
 
@@ -84,6 +114,24 @@ export default function ArticleForm({ article }: ArticleFormProps) {
         onChange={(e) => setSubtitle(e.target.value)}
         placeholder="Enter article subtitle"
       />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Parent Article (optional - for sub-articles)
+        </label>
+        <select
+          value={parentId || ''}
+          onChange={(e) => setParentId(e.target.value || null)}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        >
+          <option value="">None (Main Article)</option>
+          {availableArticles.map((article) => (
+            <option key={article.id} value={article.id}>
+              {article.title}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

@@ -2,13 +2,13 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation, Pagination, Keyboard, Mousewheel } from 'swiper/modules'
+import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
+import HorizontalSlides from './HorizontalSlides'
 import { useRealtime } from '@/app/hooks/useRealtime'
 
 import 'swiper/css'
-import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 interface Article {
@@ -17,6 +17,10 @@ interface Article {
   subtitle?: string | null
   content: string
   orderPosition: number
+  textAlign?: string
+  verticalAlign?: string
+  parentId?: string | null
+  subArticles?: Article[]
 }
 
 interface ArticlesSwiperProps {
@@ -80,10 +84,9 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     <div className="h-screen w-full relative">
       <Swiper
         onSwiper={(swiper) => (swiperRef.current = swiper)}
-        modules={[Navigation, Pagination, Keyboard, Mousewheel]}
+        modules={[Pagination, Keyboard, Mousewheel]}
         direction="vertical"
         slidesPerView={1}
-        navigation={true}
         pagination={{
           clickable: true,
           bulletClass: 'swiper-pagination-bullet bg-white bg-opacity-50',
@@ -97,8 +100,6 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         speed={600}
         className="h-full w-full"
         style={{
-          '--swiper-navigation-color': '#374151',
-          '--swiper-navigation-size': '24px',
           '--swiper-pagination-color': '#ffffff',
           '--swiper-pagination-bullet-inactive-color': '#ffffff',
           '--swiper-pagination-bullet-inactive-opacity': '0.5',
@@ -106,7 +107,14 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       >
         {articles.map((article) => (
           <SwiperSlide key={article.id} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-            <ArticleSlide article={article} />
+            {article.subArticles && article.subArticles.length > 0 ? (
+              <HorizontalSlides
+                mainArticle={article}
+                subArticles={article.subArticles}
+              />
+            ) : (
+              <ArticleSlide article={article} />
+            )}
           </SwiperSlide>
         ))}
       </Swiper>

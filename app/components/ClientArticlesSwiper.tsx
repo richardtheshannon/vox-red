@@ -21,6 +21,10 @@ interface Article {
   subtitle?: string | null
   content: string
   orderPosition: number
+  textAlign?: string
+  verticalAlign?: string
+  parentId?: string | null
+  subArticles?: Article[]
 }
 
 interface ClientArticlesSwiperProps {

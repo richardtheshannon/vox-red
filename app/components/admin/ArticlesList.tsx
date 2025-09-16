@@ -26,6 +26,8 @@ interface Article {
   subtitle?: string | null
   orderPosition: number
   updatedAt: Date
+  parentId?: string | null
+  subArticles?: Article[]
 }
 
 interface ArticlesListProps {
@@ -142,6 +144,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                           )}
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             Updated {new Date(article.updatedAt).toLocaleDateString()}
+                            {article.subArticles && article.subArticles.length > 0 && (
+                              <span className="ml-2 text-blue-600 dark:text-blue-400">
+                                • {article.subArticles.length} sub-article{article.subArticles.length > 1 ? 's' : ''}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -160,6 +167,37 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         </Button>
                       </div>
                     </div>
+                    {/* Sub-articles section */}
+                    {article.subArticles && article.subArticles.length > 0 && (
+                      <div className="mt-3 ml-10 space-y-2 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                        {article.subArticles.map((subArticle) => (
+                          <div key={subArticle.id} className="bg-gray-50 dark:bg-gray-900 p-3 rounded">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                  {subArticle.title}
+                                </h4>
+                                {subArticle.subtitle && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{subArticle.subtitle}</p>
+                                )}
+                              </div>
+                              <div className="flex space-x-2">
+                                <Link href={`/admin/articles/${subArticle.id}/edit`}>
+                                  <Button variant="secondary" size="sm">Edit</Button>
+                                </Link>
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => handleDelete(subArticle.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </Draggable>

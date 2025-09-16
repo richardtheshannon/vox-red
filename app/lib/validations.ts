@@ -7,6 +7,7 @@ export const articleSchema = z.object({
   orderPosition: z.number().int().min(0).optional(),
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
+  parentId: z.string().uuid().nullable().optional(),
 })
 
 export const reorderSchema = z.object({
