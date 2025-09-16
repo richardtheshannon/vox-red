@@ -14,6 +14,7 @@ interface ArticleFormProps {
     title: string
     subtitle?: string | null
     content: string
+    audioUrl?: string | null
     textAlign?: string
     verticalAlign?: string
     parentId?: string | null
@@ -30,6 +31,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
   const [title, setTitle] = useState(article?.title || '')
   const [subtitle, setSubtitle] = useState(article?.subtitle || '')
   const [content, setContent] = useState(article?.content || '')
+  const [audioUrl, setAudioUrl] = useState(article?.audioUrl || '')
   const [textAlign, setTextAlign] = useState(article?.textAlign || 'left')
   const [verticalAlign, setVerticalAlign] = useState(article?.verticalAlign || 'center')
   const [parentId, setParentId] = useState<string | null>(article?.parentId || null)
@@ -77,8 +79,9 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
         },
         body: JSON.stringify({
           title,
-          subtitle: subtitle || undefined,
+          subtitle: subtitle || null,
           content,
+          audioUrl: audioUrl || null,
           textAlign,
           verticalAlign,
           parentId: parentId || null,
@@ -113,6 +116,15 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
         value={subtitle}
         onChange={(e) => setSubtitle(e.target.value)}
         placeholder="Enter article subtitle"
+      />
+
+      <Input
+        label="Audio URL (optional)"
+        type="url"
+        value={audioUrl}
+        onChange={(e) => setAudioUrl(e.target.value)}
+        placeholder="https://example.com/audio.mp3"
+        help="Enter a URL to an MP3 file to add an audio player to this article"
       />
 
       <div>

@@ -6,11 +6,10 @@ import { sseManager } from '@/app/lib/realtime'
 
 export async function GET() {
   try {
-    // Get published articles
-    const publishedArticles = await prisma.article.findMany({
+    // Get all main articles (published and unpublished)
+    const allMainArticles = await prisma.article.findMany({
       where: {
         parentId: null, // Only get main articles (not sub-articles)
-        published: true // Only get published articles
       },
       orderBy: { orderPosition: 'asc' },
       include: {
@@ -21,33 +20,26 @@ export async function GET() {
       }
     })
 
-    // Also get completed projects
-    const completedProjects = await prisma.article.findMany({
-      where: {
-        parentId: null,
-        isProject: true,
-        published: false
-      },
-      orderBy: { orderPosition: 'asc' },
-      include: {
-        subArticles: {
-          where: { published: true },
-          orderBy: { orderPosition: 'asc' }
-        }
+    // Filter articles based on visibility rules
+    const visibleArticles = allMainArticles.filter(article => {
+      // For projects: show if main article is published OR has published sub-articles
+      if (article.isProject) {
+        return article.published || article.subArticles.length > 0
       }
+      // For non-projects: only show if main article is published
+      return article.published
     })
 
-    // Filter to only truly completed projects
-    const fullyCompletedProjects = completedProjects.filter(
-      project => project.subArticles.length === 0
-    )
+    // Filter out completed projects (projects with no visible content)
+    const activeArticles = visibleArticles.filter(article => {
+      if (article.isProject) {
+        // Project is active if main article is published OR has published sub-articles
+        return article.published || article.subArticles.length > 0
+      }
+      return true
+    })
 
-    // Combine and sort
-    const allArticles = [...publishedArticles, ...fullyCompletedProjects].sort(
-      (a, b) => a.orderPosition - b.orderPosition
-    )
-
-    return NextResponse.json(allArticles)
+    return NextResponse.json(activeArticles)
   } catch (error) {
     console.error('Error fetching articles:', error)
     return NextResponse.json(

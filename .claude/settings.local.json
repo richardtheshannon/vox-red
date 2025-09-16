@@ -10,7 +10,8 @@
       "Bash(findstr:*)",
       "Bash(del .env)",
       "Bash(git remote add:*)",
-      "Bash(timeout 60 npm run build)"
+      "Bash(timeout 60 npm run build)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

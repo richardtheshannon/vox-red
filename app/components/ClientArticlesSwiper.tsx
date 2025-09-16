@@ -20,6 +20,7 @@ interface Article {
   title: string
   subtitle?: string | null
   content: string
+  audioUrl?: string | null
   orderPosition: number
   textAlign?: string
   verticalAlign?: string

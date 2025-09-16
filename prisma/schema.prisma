@@ -27,6 +27,7 @@ model Article {
   title         String    @db.VarChar(255)
   subtitle      String?   @db.VarChar(500)
   content       String    @db.Text
+  audioUrl      String?   @map("audio_url") @db.VarChar(500) // Optional MP3 file URL
   orderPosition Int       @map("order_position")
   textAlign     String    @default("left") @map("text_align") // "left" or "right"
   verticalAlign String    @default("center") @map("vertical_align") // "top", "center", or "bottom"

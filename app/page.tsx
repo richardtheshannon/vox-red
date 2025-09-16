@@ -4,11 +4,10 @@ import ClientArticlesSwiper from './components/ClientArticlesSwiper'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  // Get published articles
-  const publishedArticles = await prisma.article.findMany({
+  // Get all main articles (published and unpublished)
+  const allMainArticles = await prisma.article.findMany({
     where: {
-      parentId: null, // Only get main articles
-      published: true // Only get published articles
+      parentId: null, // Only get main articles (not sub-articles)
     },
     orderBy: { orderPosition: 'asc' },
     include: {
@@ -19,31 +18,24 @@ export default async function Home() {
     }
   })
 
-  // Also get completed projects (unpublished projects with no published sub-articles)
-  const completedProjects = await prisma.article.findMany({
-    where: {
-      parentId: null,
-      isProject: true,
-      published: false
-    },
-    orderBy: { orderPosition: 'asc' },
-    include: {
-      subArticles: {
-        where: { published: true },
-        orderBy: { orderPosition: 'asc' }
-      }
+  // Filter articles based on visibility rules
+  const visibleArticles = allMainArticles.filter(article => {
+    // For projects: show if main article is published OR has published sub-articles
+    if (article.isProject) {
+      return article.published || article.subArticles.length > 0
     }
+    // For non-projects: only show if main article is published
+    return article.published
   })
 
-  // Filter to only include truly completed projects (no published sub-articles)
-  const fullyCompletedProjects = completedProjects.filter(
-    project => project.subArticles.length === 0
-  )
+  // Filter out completed projects (projects with no visible content)
+  const activeArticles = visibleArticles.filter(article => {
+    if (article.isProject) {
+      // Project is active if main article is published OR has published sub-articles
+      return article.published || article.subArticles.length > 0
+    }
+    return true
+  })
 
-  // Combine and sort by orderPosition
-  const allArticles = [...publishedArticles, ...fullyCompletedProjects].sort(
-    (a, b) => a.orderPosition - b.orderPosition
-  )
-
-  return <ClientArticlesSwiper initialArticles={allArticles} />
+  return <ClientArticlesSwiper initialArticles={activeArticles} />
 }

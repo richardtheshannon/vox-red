@@ -14,6 +14,7 @@ interface Article {
   title: string
   subtitle?: string | null
   content: string
+  audioUrl?: string | null
   orderPosition: number
   textAlign?: string
   verticalAlign?: string
@@ -40,10 +41,12 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       if (mainArticle.published) {
         slides.push(mainArticle)
       }
-      slides.push(...subArticles.filter(sub => sub.published))
+      // Always add published sub-articles
+      const publishedSubArticles = subArticles.filter(sub => sub.published)
+      slides.push(...publishedSubArticles)
       setVisibleSlides(slides)
 
-      // Check if project is completed
+      // Check if project is completed (no visible slides at all)
       if (slides.length === 0) {
         setIsCompleted(true)
       }

@@ -2,8 +2,15 @@ import { z } from 'zod'
 
 export const articleSchema = z.object({
   title: z.string().min(1).max(255),
-  subtitle: z.string().max(500).optional(),
+  subtitle: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().max(500).nullable().optional()
+  ),
   content: z.string().min(1),
+  audioUrl: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().url().max(500).nullable().optional()
+  ),
   orderPosition: z.number().int().min(0).optional(),
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),

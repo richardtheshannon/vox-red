@@ -16,6 +16,7 @@ interface Article {
   title: string
   subtitle?: string | null
   content: string
+  audioUrl?: string | null
   orderPosition: number
   textAlign?: string
   verticalAlign?: string
@@ -102,7 +103,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         } as React.CSSProperties}
       >
         {articles.map((article) => (
-          <SwiperSlide key={article.id} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+          <SwiperSlide key={article.id} className="bg-gray-50 dark:bg-[#141414]">
             {article.subArticles && article.subArticles.length > 0 ? (
               <HorizontalSlides
                 mainArticle={article}

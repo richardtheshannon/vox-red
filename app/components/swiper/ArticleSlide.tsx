@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import AudioPlayer from '../AudioPlayer'
 
 interface ArticleSlideProps {
   article: {
@@ -9,6 +10,7 @@ interface ArticleSlideProps {
     title: string
     subtitle?: string | null
     content: string
+    audioUrl?: string | null
     textAlign?: string
     verticalAlign?: string
     isProject?: boolean
@@ -80,7 +82,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
   return (
     <div className="h-full flex flex-col relative">
       {/* Scrollable content area */}
-      <div className={`article-scroll flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8 lg:p-12 ${article.isProject ? 'pb-24' : ''}`}>
+      <div className={`article-scroll flex-1 overflow-y-auto overflow-x-hidden p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 pb-16 sm:pb-20 md:pb-24 lg:pb-28 xl:pb-32 ${article.isProject ? 'pb-32 sm:pb-36 md:pb-40 lg:pb-44 xl:pb-48' : ''}`}>
         <div className={`min-h-full flex flex-col ${getVerticalAlignClasses()}`}>
           <div className={`w-full ${getTextAlignClasses()} space-y-4 sm:space-y-6`}>
             <h1 className="font-bold text-gray-900 dark:text-gray-100 responsive-title">
@@ -97,6 +99,13 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
               className={`text-gray-700 dark:text-gray-300 prose dark:prose-invert max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
+
+            {/* Audio Player */}
+            {article.audioUrl && (
+              <div className="mt-6">
+                <AudioPlayer audioUrl={article.audioUrl} title={article.title} />
+              </div>
+            )}
           </div>
         </div>
       </div>
