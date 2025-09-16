@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
+import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 
 import 'swiper/css'
@@ -17,6 +19,8 @@ interface Article {
   verticalAlign?: string
   parentId?: string | null
   subArticles?: Article[]
+  isProject?: boolean
+  published?: boolean
 }
 
 interface HorizontalSlidesProps {
@@ -25,15 +29,108 @@ interface HorizontalSlidesProps {
 }
 
 export default function HorizontalSlides({ mainArticle, subArticles }: HorizontalSlidesProps) {
-  const allSlides = [mainArticle, ...subArticles]
+  const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
+  const [isCompleted, setIsCompleted] = useState(false)
+  const swiperRef = useRef<SwiperType | null>(null)
 
-  if (allSlides.length === 1) {
-    // If no sub-articles, just show the main article without swiper
-    return <ArticleSlide article={mainArticle} />
+  useEffect(() => {
+    // Initialize visible slides - only show published articles
+    if (mainArticle.isProject) {
+      const slides = []
+      if (mainArticle.published) {
+        slides.push(mainArticle)
+      }
+      slides.push(...subArticles.filter(sub => sub.published))
+      setVisibleSlides(slides)
+
+      // Check if project is completed
+      if (slides.length === 0) {
+        setIsCompleted(true)
+      }
+    } else {
+      // Non-project articles show all slides
+      setVisibleSlides([mainArticle, ...subArticles])
+    }
+  }, [mainArticle, subArticles])
+
+  const handleSlideComplete = async (articleId: string) => {
+    try {
+      const response = await fetch('/api/articles/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ articleId }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        if (data.allCompleted) {
+          setIsCompleted(true)
+          setVisibleSlides([])
+        } else {
+          // Remove the completed slide
+          setVisibleSlides(prev => {
+            const newSlides = prev.filter(slide => slide.id !== articleId)
+
+            // If we removed a slide and swiper needs to adjust
+            if (swiperRef.current && newSlides.length > 0) {
+              const currentIndex = prev.findIndex(s => s.id === articleId)
+              // Move to the slide that's now at this index (or the last one if we're at the end)
+              const nextIndex = Math.min(currentIndex, newSlides.length - 1)
+              setTimeout(() => {
+                swiperRef.current?.slideTo(nextIndex, 0)
+              }, 0)
+            }
+
+            return newSlides
+          })
+
+          // If there's a next article that needs to be published, add it
+          if (data.nextArticleId) {
+            // The API already published it, we just need to refresh to get it
+            // But since we want to avoid refresh, we'll handle it differently
+            // For now, we're removing the current slide which should show the next one
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error completing slide:', error)
+    }
+  }
+
+  // Check if this is a completed project
+  if (isCompleted) {
+    return (
+      <div className="h-full flex flex-col justify-center items-center p-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-green-600 dark:text-green-400">
+            ✓ Project Completed!
+          </h1>
+          <p className="text-xl text-gray-700 dark:text-gray-300">
+            All slides in "{mainArticle.title}" have been completed.
+          </p>
+          <p className="text-gray-600 dark:text-gray-400">
+            This project has been successfully finished.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (visibleSlides.length === 1) {
+    // If only one slide, show it without swiper
+    return <ArticleSlide article={visibleSlides[0]} onComplete={handleSlideComplete} />
+  }
+
+  if (visibleSlides.length === 0) {
+    return null
   }
 
   return (
     <Swiper
+      onSwiper={(swiper) => { swiperRef.current = swiper }}
       modules={[Pagination, Keyboard, Mousewheel]}
       direction="horizontal"
       slidesPerView={1}
@@ -64,9 +161,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         '--swiper-pagination-bottom': '40px',
       } as React.CSSProperties}
     >
-      {allSlides.map((article) => (
+      {visibleSlides.map((article) => (
         <SwiperSlide key={article.id}>
-          <ArticleSlide article={article} />
+          <ArticleSlide article={article} onComplete={handleSlideComplete} />
         </SwiperSlide>
       ))}
     </Swiper>

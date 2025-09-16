@@ -207,9 +207,9 @@ body > div:last-of-type[style*="fixed"] {
   display: none !important;
 }
 
-/* Responsive typography optimized for all devices */
+/* Standard typography without viewport scaling */
 .responsive-title {
-  font-size: clamp(2.5rem, 7vw, 8rem);
+  font-size: 3rem;
   line-height: 1.1;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -217,7 +217,7 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-subtitle {
-  font-size: clamp(1.25rem, 4.5vw, 3.5rem);
+  font-size: 1.5rem;
   line-height: 1.3;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -225,15 +225,15 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-content {
-  font-size: clamp(1.1rem, 3.5vw, 2.5rem);
-  line-height: 1.5;
+  font-size: 1.125rem;
+  line-height: 1.6;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
 }
 
 .responsive-content h1 {
-  font-size: clamp(2rem, 6vw, 6rem);
+  font-size: 2.5rem;
   line-height: 1.2;
   margin: 1em 0 0.5em 0;
   word-wrap: break-word;
@@ -242,7 +242,7 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-content h2 {
-  font-size: clamp(1.75rem, 5vw, 4.5rem);
+  font-size: 2rem;
   line-height: 1.25;
   margin: 0.8em 0 0.4em 0;
   word-wrap: break-word;
@@ -251,7 +251,7 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-content h3 {
-  font-size: clamp(1.5rem, 4vw, 3.5rem);
+  font-size: 1.75rem;
   line-height: 1.3;
   margin: 0.6em 0 0.3em 0;
   word-wrap: break-word;
@@ -260,7 +260,7 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-content p {
-  font-size: clamp(1.1rem, 3.5vw, 2.5rem);
+  font-size: 1.125rem;
   line-height: 1.6;
   margin-bottom: 1em;
   word-wrap: break-word;
@@ -269,7 +269,7 @@ body > div:last-of-type[style*="fixed"] {
 }
 
 .responsive-content ul, .responsive-content ol {
-  font-size: clamp(1.1rem, 3.5vw, 2.5rem);
+  font-size: 1.125rem;
   line-height: 1.6;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -278,6 +278,77 @@ body > div:last-of-type[style*="fixed"] {
 
 .responsive-content li {
   margin-bottom: 0.5em;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .responsive-title {
+    font-size: 2rem;
+  }
+
+  .responsive-subtitle {
+    font-size: 1.25rem;
+  }
+
+  .responsive-content,
+  .responsive-content p,
+  .responsive-content ul,
+  .responsive-content ol {
+    font-size: 1rem;
+  }
+
+  .responsive-content h1 {
+    font-size: 1.875rem;
+  }
+
+  .responsive-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .responsive-content h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Custom scrollbar styles for article slides */
+.article-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.article-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.article-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.article-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dark .article-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark .article-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.dark .article-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Firefox scrollbar */
+.article-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.dark .article-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
 }
 
 /* Tiptap Editor Dark Mode Styles */

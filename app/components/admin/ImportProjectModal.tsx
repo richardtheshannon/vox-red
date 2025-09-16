@@ -1,0 +1,190 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { parseMarkdownProject, type ParsedSection } from '@/app/lib/markdownParser'
+
+interface ImportProjectModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+export default function ImportProjectModal({ isOpen, onClose, onSuccess }: ImportProjectModalProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<ParsedSection[]>([])
+  const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  if (!isOpen) return null
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+
+    if (!selectedFile.name.endsWith('.md')) {
+      setError('Please select a markdown (.md) file')
+      return
+    }
+
+    setFile(selectedFile)
+    setError('')
+
+    // Read and parse the file
+    try {
+      const content = await selectedFile.text()
+      const parsed = await parseMarkdownProject(content)
+
+      if (parsed.error) {
+        setError(parsed.error)
+        setPreview([])
+      } else {
+        setPreview(parsed.sections)
+      }
+    } catch (err) {
+      setError('Failed to read file')
+      setPreview([])
+    }
+  }
+
+  const handleImport = async () => {
+    if (!file || preview.length === 0) return
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const content = await file.text()
+
+      const response = await fetch('/api/articles/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ markdown: content }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to import project')
+      }
+
+      // Success
+      onSuccess()
+      handleClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to import project')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    setFile(null)
+    setPreview([])
+    setError('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b dark:border-gray-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Import Markdown Project</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
+            Upload a markdown file to create a project with horizontal sub-slides
+          </p>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* File Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Select Markdown File
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".md"
+              onChange={handleFileSelect}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 dark:file:bg-gray-700 file:text-blue-700 dark:file:text-blue-400
+                hover:file:bg-blue-100 dark:hover:file:bg-gray-600"
+            />
+            {file && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Selected: {file.name}
+              </p>
+            )}
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
+          {/* Preview */}
+          {preview.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Preview Structure
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center">
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      Main Slide:
+                    </span>
+                    <span className="ml-2 text-gray-900 dark:text-gray-100">{preview[0].title}</span>
+                  </div>
+                </div>
+                {preview.slice(1).map((section, index) => (
+                  <div key={index} className="ml-8 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="flex items-center">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Sub-slide {index + 1}:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-gray-100">{section.title}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Total: 1 main slide + {preview.length - 1} sub-slide{preview.length - 1 !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t dark:border-gray-700 flex justify-end space-x-3">
+          <button
+            onClick={handleClose}
+            disabled={loading}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleImport}
+            disabled={!file || preview.length === 0 || loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Importing...' : 'Import Project'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

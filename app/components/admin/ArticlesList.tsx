@@ -28,6 +28,8 @@ interface Article {
   updatedAt: Date
   parentId?: string | null
   subArticles?: Article[]
+  published?: boolean
+  isProject?: boolean
 }
 
 interface ArticlesListProps {
@@ -103,6 +105,26 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handlePublishToggle = async (id: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/articles/${id}/publish`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ published: !currentStatus }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update publish status')
+      }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error updating publish status:', error)
+    }
+  }
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="articles" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
@@ -138,7 +160,21 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                           </svg>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              article.published
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            }`}>
+                              {article.published ? 'Published' : 'Unpublished'}
+                            </span>
+                            {article.isProject && (
+                              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                Project
+                              </span>
+                            )}
+                          </div>
                           {article.subtitle && (
                             <p className="text-sm text-gray-500 dark:text-gray-400">{article.subtitle}</p>
                           )}
@@ -153,6 +189,14 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         </div>
                       </div>
                       <div className="flex space-x-2">
+                        <select
+                          value={article.published ? 'published' : 'unpublished'}
+                          onChange={(e) => handlePublishToggle(article.id, article.published || false)}
+                          className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        >
+                          <option value="published">Published</option>
+                          <option value="unpublished">Unpublished</option>
+                        </select>
                         <Link href={`/admin/articles/${article.id}/edit`}>
                           <Button variant="secondary" size="sm">
                             Edit
@@ -173,15 +217,32 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         {article.subArticles.map((subArticle) => (
                           <div key={subArticle.id} className="bg-gray-50 dark:bg-gray-900 p-3 rounded">
                             <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                                  {subArticle.title}
-                                </h4>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2">
+                                  <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                    {subArticle.title}
+                                  </h4>
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    subArticle.published
+                                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  }`}>
+                                    {subArticle.published ? 'Published' : 'Unpublished'}
+                                  </span>
+                                </div>
                                 {subArticle.subtitle && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">{subArticle.subtitle}</p>
                                 )}
                               </div>
                               <div className="flex space-x-2">
+                                <select
+                                  value={subArticle.published ? 'published' : 'unpublished'}
+                                  onChange={(e) => handlePublishToggle(subArticle.id, subArticle.published || false)}
+                                  className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                >
+                                  <option value="published">Published</option>
+                                  <option value="unpublished">Unpublished</option>
+                                </select>
                                 <Link href={`/admin/articles/${subArticle.id}/edit`}>
                                   <Button variant="secondary" size="sm">Edit</Button>
                                 </Link>

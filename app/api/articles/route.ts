@@ -6,17 +6,48 @@ import { sseManager } from '@/app/lib/realtime'
 
 export async function GET() {
   try {
-    const articles = await prisma.article.findMany({
-      where: { parentId: null }, // Only get main articles (not sub-articles)
+    // Get published articles
+    const publishedArticles = await prisma.article.findMany({
+      where: {
+        parentId: null, // Only get main articles (not sub-articles)
+        published: true // Only get published articles
+      },
       orderBy: { orderPosition: 'asc' },
       include: {
         subArticles: {
+          where: { published: true }, // Only include published sub-articles
           orderBy: { orderPosition: 'asc' }
         }
       }
     })
 
-    return NextResponse.json(articles)
+    // Also get completed projects
+    const completedProjects = await prisma.article.findMany({
+      where: {
+        parentId: null,
+        isProject: true,
+        published: false
+      },
+      orderBy: { orderPosition: 'asc' },
+      include: {
+        subArticles: {
+          where: { published: true },
+          orderBy: { orderPosition: 'asc' }
+        }
+      }
+    })
+
+    // Filter to only truly completed projects
+    const fullyCompletedProjects = completedProjects.filter(
+      project => project.subArticles.length === 0
+    )
+
+    // Combine and sort
+    const allArticles = [...publishedArticles, ...fullyCompletedProjects].sort(
+      (a, b) => a.orderPosition - b.orderPosition
+    )
+
+    return NextResponse.json(allArticles)
   } catch (error) {
     console.error('Error fetching articles:', error)
     return NextResponse.json(

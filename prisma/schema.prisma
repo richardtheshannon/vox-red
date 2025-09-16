@@ -31,6 +31,8 @@ model Article {
   textAlign     String    @default("left") @map("text_align") // "left" or "right"
   verticalAlign String    @default("center") @map("vertical_align") // "top", "center", or "bottom"
   parentId      String?   @map("parent_id") // NULL for main articles, parent ID for sub-articles
+  published     Boolean   @default(true) // false for unpublished/completed slides
+  isProject     Boolean   @default(false) @map("is_project") // true for imported markdown projects
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -39,5 +41,6 @@ model Article {
 
   @@index([orderPosition])
   @@index([parentId])
+  @@index([published])
   @@map("articles")
 }
