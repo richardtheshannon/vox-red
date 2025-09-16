@@ -109,7 +109,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
             ✓ Project Completed!
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-300">
-            All slides in "{mainArticle.title}" have been completed.
+            All slides in &ldquo;{mainArticle.title}&rdquo; have been completed.
           </p>
           <p className="text-gray-600 dark:text-gray-400">
             This project has been successfully finished.

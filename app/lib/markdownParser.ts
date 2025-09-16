@@ -44,7 +44,7 @@ export async function parseMarkdownProject(markdown: string): Promise<ParsedMark
       const startIndex = currentHeading.index + markdown.indexOf('\n', currentHeading.index) + 1
       const endIndex = nextHeading ? nextHeading.index : markdown.length
 
-      let content = markdown.substring(startIndex, endIndex).trim()
+      const content = markdown.substring(startIndex, endIndex).trim()
 
       // Convert markdown to HTML
       const htmlContent = await marked(content)

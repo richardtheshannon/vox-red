@@ -63,7 +63,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
           body: JSON.stringify({ articleId: article.id }),
         })
 
-        const data = await response.json()
+        await response.json()
 
         if (response.ok) {
           // Refresh the page to show changes

@@ -29,13 +29,11 @@ interface ArticlesSwiperProps {
 
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
-  const [isLoading, setIsLoading] = useState(false)
-  const { isConnected, refreshTrigger } = useRealtime()
+  const { refreshTrigger } = useRealtime()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
     const fetchArticles = async () => {
-      setIsLoading(true)
       try {
         const response = await fetch('/api/articles')
         if (response.ok) {
@@ -44,8 +42,6 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         }
       } catch (error) {
         console.error('Error fetching articles:', error)
-      } finally {
-        setIsLoading(false)
       }
     }
 

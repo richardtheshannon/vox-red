@@ -41,7 +41,7 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
       } else {
         setPreview(parsed.sections)
       }
-    } catch (err) {
+    } catch {
       setError('Failed to read file')
       setPreview([])
     }

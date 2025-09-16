@@ -6,9 +6,10 @@ import ArticlesList from '@/app/components/admin/ArticlesList'
 import Button from '@/app/components/ui/Button'
 import ImportProjectModal from '@/app/components/admin/ImportProjectModal'
 import { useRouter } from 'next/navigation'
+import type { Article } from '@prisma/client'
 
 interface ArticlesPageClientProps {
-  initialArticles: any[]
+  initialArticles: (Article & { subArticles?: Article[] })[]
 }
 
 export default function ArticlesPageClient({ initialArticles }: ArticlesPageClientProps) {

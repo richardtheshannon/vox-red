@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import Button from './Button'
 import { cn } from '@/app/lib/utils'
 
 interface AdminLayoutProps {

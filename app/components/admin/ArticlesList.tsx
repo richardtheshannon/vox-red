@@ -191,7 +191,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                       <div className="flex space-x-2">
                         <select
                           value={article.published ? 'published' : 'unpublished'}
-                          onChange={(e) => handlePublishToggle(article.id, article.published || false)}
+                          onChange={() => handlePublishToggle(article.id, article.published || false)}
                           className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         >
                           <option value="published">Published</option>
@@ -237,7 +237,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                               <div className="flex space-x-2">
                                 <select
                                   value={subArticle.published ? 'published' : 'unpublished'}
-                                  onChange={(e) => handlePublishToggle(subArticle.id, subArticle.published || false)}
+                                  onChange={() => handlePublishToggle(subArticle.id, subArticle.published || false)}
                                   className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                 >
                                   <option value="published">Published</option>
