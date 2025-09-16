@@ -14,7 +14,9 @@ interface TiptapEditorProps {
 export default function TiptapEditor({ content, onChange }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false, // Disable the built-in link extension
+      }),
       Link.configure({
         openOnClick: false,
       }),

@@ -14,6 +14,8 @@ interface ArticleFormProps {
     title: string
     subtitle?: string | null
     content: string
+    textAlign?: string
+    verticalAlign?: string
   }
 }
 
@@ -22,6 +24,8 @@ export default function ArticleForm({ article }: ArticleFormProps) {
   const [title, setTitle] = useState(article?.title || '')
   const [subtitle, setSubtitle] = useState(article?.subtitle || '')
   const [content, setContent] = useState(article?.content || '')
+  const [textAlign, setTextAlign] = useState(article?.textAlign || 'left')
+  const [verticalAlign, setVerticalAlign] = useState(article?.verticalAlign || 'center')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -46,6 +50,8 @@ export default function ArticleForm({ article }: ArticleFormProps) {
           title,
           subtitle: subtitle || undefined,
           content,
+          textAlign,
+          verticalAlign,
         }),
       })
 
@@ -78,6 +84,37 @@ export default function ArticleForm({ article }: ArticleFormProps) {
         onChange={(e) => setSubtitle(e.target.value)}
         placeholder="Enter article subtitle"
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Text Alignment
+          </label>
+          <select
+            value={textAlign}
+            onChange={(e) => setTextAlign(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          >
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Vertical Alignment
+          </label>
+          <select
+            value={verticalAlign}
+            onChange={(e) => setVerticalAlign(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          >
+            <option value="top">Top</option>
+            <option value="center">Center</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

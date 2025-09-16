@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Keyboard, Mousewheel } from 'swiper/modules'
+import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import { useRealtime } from '@/app/hooks/useRealtime'
 
@@ -26,6 +27,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
   const [articles, setArticles] = useState(initialArticles)
   const [isLoading, setIsLoading] = useState(false)
   const { isConnected, refreshTrigger } = useRealtime()
+  const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -48,6 +50,21 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     }
   }, [refreshTrigger])
 
+  // Listen for home navigation event
+  useEffect(() => {
+    const handleNavigateToFirst = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slideTo(0)
+      }
+    }
+
+    window.addEventListener('navigateToFirstSlide', handleNavigateToFirst)
+
+    return () => {
+      window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
+    }
+  }, [])
+
   if (articles.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -62,6 +79,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
   return (
     <div className="h-screen w-full relative">
       <Swiper
+        onSwiper={(swiper) => (swiperRef.current = swiper)}
         modules={[Navigation, Pagination, Keyboard, Mousewheel]}
         direction="vertical"
         slidesPerView={1}
