@@ -125,7 +125,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
           <option value="">None (Main Article)</option>
-          {availableArticles.map((article) => (
+          {availableArticles?.map((article) => (
             <option key={article.id} value={article.id}>
               {article.title}
             </option>
