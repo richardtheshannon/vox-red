@@ -81,14 +81,16 @@ export async function POST(request: NextRequest) {
     sseManager.notifyArticleChange('created', newArticle.id)
     return NextResponse.json(newArticle, { status: 201 })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    console.error('Error creating article:', error)
+
+    // Check if it's a Zod validation error
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Invalid input', details: error },
         { status: 400 }
       )
     }
-    
-    console.error('Error creating article:', error)
+
     return NextResponse.json(
       { error: 'Failed to create article' },
       { status: 500 }

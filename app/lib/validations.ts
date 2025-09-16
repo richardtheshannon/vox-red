@@ -2,10 +2,7 @@ import { z } from 'zod'
 
 export const articleSchema = z.object({
   title: z.string().min(1).max(255),
-  subtitle: z.preprocess(
-    (val) => val === '' ? null : val,
-    z.string().max(500).nullable().optional()
-  ),
+  subtitle: z.string().max(500).optional().transform(val => val === '' ? null : val),
   content: z.string().min(1),
   audioUrl: z.preprocess(
     (val) => val === '' ? null : val,

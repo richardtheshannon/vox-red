@@ -58,14 +58,16 @@ export async function PUT(
     sseManager.notifyArticleChange('updated', id)
     return NextResponse.json(updatedArticle)
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    console.error('Error updating article:', error)
+
+    // Check if it's a Zod validation error
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Invalid input', details: error },
         { status: 400 }
       )
     }
-    
-    console.error('Error updating article:', error)
+
     return NextResponse.json(
       { error: 'Failed to update article' },
       { status: 500 }
