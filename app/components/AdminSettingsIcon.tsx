@@ -2,14 +2,34 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function AdminSettingsIcon() {
   const pathname = usePathname()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Don't show on admin pages to avoid redundancy
+  useEffect(() => {
+    setMounted(true)
+
+    // Check authentication status
+    const authData = localStorage.getItem('vox-red-auth')
+    if (authData) {
+      try {
+        const { expiry } = JSON.parse(authData)
+        setIsAuthenticated(Date.now() < expiry)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    } else {
+      setIsAuthenticated(false)
+    }
+  }, [])
+
+  // Don't show on admin pages to avoid redundancy or when not authenticated
   const isAdminPage = pathname?.startsWith('/admin')
 
-  if (isAdminPage) return null
+  if (!mounted || isAdminPage || !isAuthenticated) return null
 
   return (
     <Link

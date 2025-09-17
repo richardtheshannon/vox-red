@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 interface PasswordProtectionProps {
   children: React.ReactNode
@@ -60,13 +61,14 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#141414] flex items-center justify-center px-4">
         <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Access Required
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-              Please enter the password to view this site
-            </p>
+          <div className="flex justify-center">
+            <Image
+              src="/media/icon-144x144.png"
+              alt="Logo"
+              width={144}
+              height={144}
+              className="w-36 h-36"
+            />
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div>

@@ -1,15 +1,35 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 export default function HomeIcon() {
   const pathname = usePathname()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Don't show on admin pages
+  useEffect(() => {
+    setMounted(true)
+
+    // Check authentication status
+    const authData = localStorage.getItem('vox-red-auth')
+    if (authData) {
+      try {
+        const { expiry } = JSON.parse(authData)
+        setIsAuthenticated(Date.now() < expiry)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    } else {
+      setIsAuthenticated(false)
+    }
+  }, [])
+
+  // Don't show on admin pages or when not authenticated
   const isAdminPage = pathname?.startsWith('/admin')
 
-  if (isAdminPage) return null
+  if (!mounted || isAdminPage || !isAuthenticated) return null
 
   const handleHomeClick = () => {
     // Dispatch a custom event to navigate to first slide

@@ -23,6 +23,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
+  const verticalAlign = article.verticalAlign || 'center'
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {
@@ -31,6 +32,18 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
         return 'text-right'
       default:
         return 'text-left'
+    }
+  }
+
+  // Determine vertical alignment classes for the article-scroll container
+  const getVerticalAlignClasses = () => {
+    switch (verticalAlign) {
+      case 'top':
+        return 'justify-start'
+      case 'bottom':
+        return 'justify-end'
+      default:
+        return 'justify-center'
     }
   }
 
@@ -72,11 +85,11 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
 
   return (
     <div className="h-full flex flex-col relative">
-      {/* 100px margin from top */}
-      <div style={{ height: '100px' }}></div>
+      {/* 65px margin from top */}
+      <div style={{ height: '65px' }}></div>
 
       {/* Scrollable content container with margins */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden article-scroll" style={{ marginBottom: '100px' }}>
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden article-scroll flex flex-col ${getVerticalAlignClasses()}`} style={{ marginBottom: '65px', padding: '5px' }}>
         <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
           <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
             <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
