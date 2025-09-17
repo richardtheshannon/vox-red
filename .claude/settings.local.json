@@ -12,7 +12,8 @@
       "Bash(git remote add:*)",
       "Bash(timeout 60 npm run build)",
       "Bash(curl:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(node check-projects.js)"
     ],
     "deny": [],
     "ask": []

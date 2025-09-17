@@ -21,6 +21,16 @@ interface ArticleSlideProps {
 
 export default function ArticleSlide({ article, onComplete }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
+
+  // Debug logging
+  if (typeof window !== 'undefined') {
+    console.log('ArticleSlide Debug:', {
+      title: article.title,
+      isProject: article.isProject,
+      parentId: article.parentId,
+      showButton: !!article.isProject
+    })
+  }
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
