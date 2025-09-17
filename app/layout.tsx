@@ -19,8 +19,25 @@ const crimsonText = Crimson_Text({
 });
 
 export const metadata: Metadata = {
-  title: "CMS Template",
-  description: "A modern CMS template with slider interface",
+  title: "VOX RED",
+  description: "A modern CMS with slider interface",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/media/favicon.ico",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "VOX RED",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    title: "VOX RED",
+    description: "A modern CMS with slider interface",
+    siteName: "VOX RED",
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +49,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body
         className={`${unicaOne.variable} ${crimsonText.variable} antialiased`}

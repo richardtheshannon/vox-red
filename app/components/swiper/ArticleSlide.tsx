@@ -106,9 +106,14 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
           <button
             onClick={handleComplete}
             disabled={loading}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold rounded-lg shadow-lg transition-colors"
+            className="transition-opacity hover:opacity-70"
+            aria-label="Mark as complete"
           >
-            {loading ? 'Processing...' : 'Complete'}
+            {loading ? (
+              <span className="material-icons text-2xl text-gray-500">hourglass_empty</span>
+            ) : (
+              <span className="material-icons text-2xl text-green-600">how_to_reg</span>
+            )}
           </button>
         </div>
       )}

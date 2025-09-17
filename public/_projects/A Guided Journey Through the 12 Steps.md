@@ -8,9 +8,7 @@ This is the first of the 12 Steps. It is the foundation upon which all recovery 
 
 # Understanding Powerlessness: The First Half of the Step
 
-The concept of "powerlessness" can be challenging. It is not a declaration of general weakness or a moral failing. Instead, it is a very specific admission: that we are powerless
-
-over the effects of our addiction. This means recognizing that once we take the first drink, use the first drug, or engage in the first compulsive behavior, a phenomenon of craving and a mental obsession take over, overriding our best intentions, our willpower, and our sense of consequence. We have lost the choice and control we once had. Step 1 asks us to accept that willpower alone is no longer enough to stop the cycle. This admission is the first, crucial act of honesty in a process that demands rigorous honesty throughout.
+The concept of "powerlessness" can be challenging. It is not a declaration of general weakness or a moral failing. Instead, it is a very specific admission: that we are powerless over the effects of our addiction. This means recognizing that once we take the first drink, use the first drug, or engage in the first compulsive behavior, a phenomenon of craving and a mental obsession take over, overriding our best intentions, our willpower, and our sense of consequence. We have lost the choice and control we once had. Step 1 asks us to accept that willpower alone is no longer enough to stop the cycle. This admission is the first, crucial act of honesty in a process that demands rigorous honesty throughout.
 
 # Understanding Unmanageability: The Second Half of the Step
 
