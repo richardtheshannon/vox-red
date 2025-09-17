@@ -25,10 +25,23 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   const router = useRouter()
   const [articles, setArticles] = useState(initialArticles)
   const [isReordering, setIsReordering] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setArticles(initialArticles)
   }, [initialArticles])
+
+  const toggleGroup = (articleId: string) => {
+    setCollapsedGroups(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(articleId)) {
+        newSet.delete(articleId)
+      } else {
+        newSet.add(articleId)
+      }
+      return newSet
+    })
+  }
 
   const moveArticle = async (articleId: string, direction: 'up' | 'down') => {
     const currentIndex = articles.findIndex(a => a.id === articleId)
@@ -204,6 +217,19 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
               </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
+                            {article.subArticles && article.subArticles.length > 0 && (
+                              <button
+                                onClick={() => toggleGroup(article.id)}
+                                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                title={collapsedGroups.has(article.id) ? 'Expand group' : 'Collapse group'}
+                              >
+                                <svg className="w-4 h-4 transition-transform" style={{
+                                  transform: collapsedGroups.has(article.id) ? 'rotate(-90deg)' : 'rotate(0deg)'
+                                }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                            )}
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               article.published
@@ -226,6 +252,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                             {article.subArticles && article.subArticles.length > 0 && (
                               <span className="ml-2 text-blue-600 dark:text-blue-400">
                                 • {article.subArticles.length} sub-article{article.subArticles.length > 1 ? 's' : ''}
+                                ({collapsedGroups.has(article.id) ? 'collapsed' : 'expanded'})
                               </span>
                             )}
                           </p>
@@ -255,7 +282,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                       </div>
                     </div>
                     {/* Sub-articles section */}
-                    {article.subArticles && article.subArticles.length > 0 && (
+                    {article.subArticles && article.subArticles.length > 0 && !collapsedGroups.has(article.id) && (
                       <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4 space-y-2">
                         {article.subArticles?.map((subArticle, subIndex) => (
                           <div
