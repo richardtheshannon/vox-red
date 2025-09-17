@@ -48,42 +48,106 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return
 
-    const items = Array.from(articles)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
+    const { source, destination } = result
 
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      orderPosition: index,
-    }))
+    // Handle main article reordering
+    if (source.droppableId === 'articles' && destination.droppableId === 'articles') {
+      const items = Array.from(articles)
+      const [reorderedItem] = items.splice(source.index, 1)
+      items.splice(destination.index, 0, reorderedItem)
 
-    setArticles(updatedItems)
-    setIsReordering(true)
+      const updatedItems = items.map((item, index) => ({
+        ...item,
+        orderPosition: index,
+      }))
 
-    try {
-      const response = await fetch('/api/articles/reorder', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          articles: updatedItems.map((item) => ({
-            id: item.id,
-            orderPosition: item.orderPosition,
-          })),
-        }),
-      })
+      setArticles(updatedItems)
+      setIsReordering(true)
 
-      if (!response.ok) {
-        throw new Error('Failed to reorder articles')
+      try {
+        const response = await fetch('/api/articles/reorder', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            articles: updatedItems.map((item) => ({
+              id: item.id,
+              orderPosition: item.orderPosition,
+            })),
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to reorder articles')
+        }
+
+        router.refresh()
+      } catch (error) {
+        console.error('Error reordering articles:', error)
+        setArticles(initialArticles)
+      } finally {
+        setIsReordering(false)
       }
+    }
 
-      router.refresh()
-    } catch (error) {
-      console.error('Error reordering articles:', error)
-      setArticles(initialArticles)
-    } finally {
-      setIsReordering(false)
+    // Handle sub-article reordering
+    if (source.droppableId.startsWith('sub-') && destination.droppableId.startsWith('sub-')) {
+      const parentId = source.droppableId.replace('sub-', '')
+
+      if (source.droppableId === destination.droppableId) {
+        // Reordering within the same parent
+        const newArticles = articles.map(article => {
+          if (article.id === parentId && article.subArticles) {
+            const subItems = Array.from(article.subArticles)
+            const [reorderedSubItem] = subItems.splice(source.index, 1)
+            subItems.splice(destination.index, 0, reorderedSubItem)
+
+            const updatedSubItems = subItems.map((subItem, index) => ({
+              ...subItem,
+              orderPosition: index,
+            }))
+
+            return {
+              ...article,
+              subArticles: updatedSubItems
+            }
+          }
+          return article
+        })
+
+        setArticles(newArticles)
+        setIsReordering(true)
+
+        try {
+          const parentArticle = newArticles.find(a => a.id === parentId)
+          if (parentArticle?.subArticles) {
+            const response = await fetch('/api/articles/reorder', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                articles: parentArticle.subArticles.map((item) => ({
+                  id: item.id,
+                  orderPosition: item.orderPosition,
+                })),
+              }),
+            })
+
+            if (!response.ok) {
+              throw new Error('Failed to reorder sub-articles')
+            }
+
+            router.refresh()
+          }
+        } catch (error) {
+          console.error('Error reordering sub-articles:', error)
+          setArticles(initialArticles)
+        } finally {
+          setIsReordering(false)
+        }
+      }
     }
   }
 
@@ -127,7 +191,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="articles" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
+      <Droppable droppableId="articles" isDropDisabled={false} type="main-article">
         {(provided) => (
           <div
             {...provided.droppableProps}
@@ -213,50 +277,86 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                     </div>
                     {/* Sub-articles section */}
                     {article.subArticles && article.subArticles.length > 0 && (
-                      <div className="mt-3 ml-10 space-y-2 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                        {article.subArticles.map((subArticle) => (
-                          <div key={subArticle.id} className="bg-gray-50 dark:bg-gray-900 p-3 rounded">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                                    {subArticle.title}
-                                  </h4>
-                                  <span className={`px-2 py-1 text-xs rounded-full ${
-                                    subArticle.published
-                                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                  }`}>
-                                    {subArticle.published ? 'Published' : 'Unpublished'}
-                                  </span>
-                                </div>
-                                {subArticle.subtitle && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{subArticle.subtitle}</p>
-                                )}
-                              </div>
-                              <div className="flex space-x-2">
-                                <select
-                                  value={subArticle.published ? 'published' : 'unpublished'}
-                                  onChange={() => handlePublishToggle(subArticle.id, subArticle.published || false)}
-                                  className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                        <Droppable droppableId={`sub-${article.id}`} isDropDisabled={false} type="sub-article">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="space-y-2"
+                            >
+                              {article.subArticles.map((subArticle, subIndex) => (
+                                <Draggable
+                                  key={subArticle.id}
+                                  draggableId={`sub-${subArticle.id}`}
+                                  index={subIndex}
+                                  isDragDisabled={isReordering}
                                 >
-                                  <option value="published">Published</option>
-                                  <option value="unpublished">Unpublished</option>
-                                </select>
-                                <Link href={`/admin/articles/${subArticle.id}/edit`}>
-                                  <Button variant="secondary" size="sm">Edit</Button>
-                                </Link>
-                                <Button
-                                  variant="danger"
-                                  size="sm"
-                                  onClick={() => handleDelete(subArticle.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </div>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      className={`bg-gray-50 dark:bg-gray-900 p-3 rounded ${
+                                        snapshot.isDragging ? 'shadow-lg opacity-90' : ''
+                                      } ${isReordering ? 'opacity-50' : ''}`}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                          <div
+                                            {...provided.dragHandleProps}
+                                            className="cursor-move text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                            </svg>
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center space-x-2">
+                                              <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                                {subArticle.title}
+                                              </h4>
+                                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                                subArticle.published
+                                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                              }`}>
+                                                {subArticle.published ? 'Published' : 'Unpublished'}
+                                              </span>
+                                            </div>
+                                            {subArticle.subtitle && (
+                                              <p className="text-xs text-gray-500 dark:text-gray-400">{subArticle.subtitle}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                          <select
+                                            value={subArticle.published ? 'published' : 'unpublished'}
+                                            onChange={() => handlePublishToggle(subArticle.id, subArticle.published || false)}
+                                            className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                          >
+                                            <option value="published">Published</option>
+                                            <option value="unpublished">Unpublished</option>
+                                          </select>
+                                          <Link href={`/admin/articles/${subArticle.id}/edit`}>
+                                            <Button variant="secondary" size="sm">Edit</Button>
+                                          </Link>
+                                          <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => handleDelete(subArticle.id)}
+                                          >
+                                            Delete
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
                             </div>
-                          </div>
-                        ))}
+                          )}
+                        </Droppable>
                       </div>
                     )}
                   </div>
