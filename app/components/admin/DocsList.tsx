@@ -228,6 +228,11 @@ export default function DocsList({ initialDocs }: DocsListProps) {
               </div>
             </div>
             <div className="flex space-x-2">
+              <Link href={`/admin/docs/${doc.id}/view`}>
+                <Button variant="primary" size="sm">
+                  View
+                </Button>
+              </Link>
               <Link href={`/admin/docs/${doc.id}/edit`}>
                 <Button variant="secondary" size="sm">
                   Edit
@@ -291,6 +296,9 @@ export default function DocsList({ initialDocs }: DocsListProps) {
                       </div>
                     </div>
                     <div className="flex space-x-2">
+                      <Link href={`/admin/docs/${subDoc.id}/view`}>
+                        <Button variant="primary" size="sm">View</Button>
+                      </Link>
                       <Link href={`/admin/docs/${subDoc.id}/edit`}>
                         <Button variant="secondary" size="sm">Edit</Button>
                       </Link>

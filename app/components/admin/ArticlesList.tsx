@@ -31,6 +31,20 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     setArticles(initialArticles)
   }, [initialArticles])
 
+  useEffect(() => {
+    // Load collapsed state from sessionStorage or default to all collapsed
+    const storedState = sessionStorage.getItem('articlesCollapsedState')
+    if (storedState) {
+      setCollapsedGroups(new Set(JSON.parse(storedState)))
+    } else {
+      // Start with all articles that have sub-articles collapsed
+      const articlesWithSubArticles = initialArticles
+        .filter(article => article.subArticles && article.subArticles.length > 0)
+        .map(article => article.id)
+      setCollapsedGroups(new Set(articlesWithSubArticles))
+    }
+  }, [initialArticles])
+
   const toggleGroup = (articleId: string) => {
     setCollapsedGroups(prev => {
       const newSet = new Set(prev)
@@ -39,6 +53,8 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
       } else {
         newSet.add(articleId)
       }
+      // Save to sessionStorage
+      sessionStorage.setItem('articlesCollapsedState', JSON.stringify(Array.from(newSet)))
       return newSet
     })
   }
