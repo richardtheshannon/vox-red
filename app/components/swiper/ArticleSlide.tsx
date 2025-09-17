@@ -21,16 +21,6 @@ interface ArticleSlideProps {
 
 export default function ArticleSlide({ article, onComplete }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
-
-  // Debug logging
-  if (typeof window !== 'undefined') {
-    console.log('ArticleSlide Debug:', {
-      title: article.title,
-      isProject: article.isProject,
-      parentId: article.parentId,
-      showButton: !!article.isProject
-    })
-  }
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
@@ -120,9 +110,9 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
         </div>
       </div>
 
-      {/* Fixed Complete button for project slides */}
+      {/* Complete button for project slides */}
       {article.isProject && (
-        <div className="fixed bottom-8 right-8 z-10">
+        <div className="absolute bottom-8 right-8 z-10">
           <button
             onClick={handleComplete}
             disabled={loading}
