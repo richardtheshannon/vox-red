@@ -72,20 +72,24 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
       
       const method = article ? 'PUT' : 'POST'
 
+      const requestData = {
+        title,
+        subtitle: subtitle || null,
+        content,
+        audioUrl: audioUrl || null,
+        textAlign,
+        verticalAlign,
+        parentId: parentId || null,
+      }
+
+      console.log('Submitting article data:', requestData)
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title,
-          subtitle: subtitle || null,
-          content,
-          audioUrl: audioUrl || null,
-          textAlign,
-          verticalAlign,
-          parentId: parentId || null,
-        }),
+        body: JSON.stringify(requestData),
       })
 
       if (!response.ok) {
