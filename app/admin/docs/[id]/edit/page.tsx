@@ -6,8 +6,9 @@ import DocForm from '@/app/components/admin/DocForm'
 export default async function EditDocPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const session = await auth()
 
   if (!session) {
@@ -15,7 +16,7 @@ export default async function EditDocPage({
   }
 
   const doc = await prisma.documentation.findUnique({
-    where: { id: params.id },
+    where: { id },
   })
 
   if (!doc) {

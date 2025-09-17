@@ -5,9 +5,10 @@ import { documentationSchema } from '@/app/lib/validations'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
 
     if (!session) {
@@ -18,7 +19,7 @@ export async function GET(
     }
 
     const doc = await prisma.documentation.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         subDocs: {
           orderBy: { orderPosition: 'asc' }
@@ -45,9 +46,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
 
     if (!session) {
@@ -61,7 +63,7 @@ export async function PUT(
     const validatedData = documentationSchema.parse(body)
 
     const updatedDoc = await prisma.documentation.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...validatedData,
         parentId: validatedData.parentId || null,
@@ -88,9 +90,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
 
     if (!session) {
@@ -101,7 +104,7 @@ export async function DELETE(
     }
 
     await prisma.documentation.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })
