@@ -285,7 +285,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                               ref={provided.innerRef}
                               className="space-y-2"
                             >
-                              {article.subArticles.map((subArticle, subIndex) => (
+                              {article.subArticles?.map((subArticle, subIndex) => (
                                 <Draggable
                                   key={subArticle.id}
                                   draggableId={`sub-${subArticle.id}`}
