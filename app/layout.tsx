@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Unica_One, Crimson_Text } from "next/font/google";
+import { Unica_One, Roboto } from "next/font/google";
 import "./globals.css";
 import SessionProvider from './components/providers/SessionProvider';
 import ConditionalThemeToggle from './components/ConditionalThemeToggle';
@@ -12,9 +12,9 @@ const unicaOne = Unica_One({
   subsets: ["latin"],
 });
 
-const crimsonText = Crimson_Text({
-  weight: ['400', '600', '700'],
-  variable: "--font-crimson-text",
+const roboto = Roboto({
+  weight: ['400', '500', '700'],
+  variable: "--font-roboto",
   subsets: ["latin"],
 });
 
@@ -54,7 +54,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body
-        className={`${unicaOne.variable} ${crimsonText.variable} antialiased`}
+        className={`${unicaOne.variable} ${roboto.variable} antialiased`}
       >
         <SessionProvider>
           <ConditionalThemeToggle />
