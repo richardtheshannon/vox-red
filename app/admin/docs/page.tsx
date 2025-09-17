@@ -1,6 +1,7 @@
 import { auth } from '@/app/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/app/lib/database'
+import AdminLayout from '@/app/components/ui/AdminLayout'
 import DocsPageClient from './DocsPageClient'
 
 export default async function DocsPage() {
@@ -23,5 +24,9 @@ export default async function DocsPage() {
     }
   })
 
-  return <DocsPageClient initialDocs={documentation} />
+  return (
+    <AdminLayout>
+      <DocsPageClient initialDocs={documentation} />
+    </AdminLayout>
+  )
 }
