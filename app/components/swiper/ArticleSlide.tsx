@@ -92,8 +92,11 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
       <div className="flex-1 overflow-y-auto overflow-x-hidden article-scroll" style={{ marginBottom: '100px' }}>
         <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
           <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
-            <h1 className="font-bold text-gray-900 dark:text-gray-100 responsive-title">
-              {article.title}
+            <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
+              <span>{article.title}</span>
+              {article.audioUrl && (
+                <AudioPlayer audioUrl={article.audioUrl} title={article.title} />
+              )}
             </h1>
 
             {article.subtitle && (
@@ -106,13 +109,6 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
               className={`text-gray-700 dark:text-gray-300 prose dark:prose-invert max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
-
-            {/* Audio Player */}
-            {article.audioUrl && (
-              <div className="mt-6">
-                <AudioPlayer audioUrl={article.audioUrl} title={article.title} />
-              </div>
-            )}
           </div>
         </div>
       </div>
