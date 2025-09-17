@@ -192,11 +192,13 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="articles" isDropDisabled={false} type="main-article">
-        {(provided) => (
+        {(provided, snapshot) => (
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="space-y-2"
+            className={`space-y-2 transition-colors ${
+              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2' : ''
+            }`}
           >
             {articles.map((article, index) => (
               <Draggable
@@ -209,15 +211,24 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow ${
-                      snapshot.isDragging ? 'shadow-lg opacity-90' : ''
+                    className={`bg-white dark:bg-gray-800 p-4 rounded-lg border-2 transition-all ${
+                      snapshot.isDragging
+                        ? 'shadow-2xl scale-105 border-blue-500 bg-blue-50 dark:bg-blue-900/50 z-50'
+                        : 'shadow border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                     } ${isReordering ? 'opacity-50' : ''}`}
+                    style={{
+                      ...provided.draggableProps.style,
+                      transform: snapshot.isDragging
+                        ? `${provided.draggableProps.style?.transform} rotate(2deg)`
+                        : provided.draggableProps.style?.transform,
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <div
                           {...provided.dragHandleProps}
-                          className="cursor-move text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                          className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          title="Drag to reorder"
                         >
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -279,11 +290,13 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                     {article.subArticles && article.subArticles.length > 0 && (
                       <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
                         <Droppable droppableId={`sub-${article.id}`} isDropDisabled={false} type="sub-article">
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div
                               {...provided.droppableProps}
                               ref={provided.innerRef}
-                              className="space-y-2"
+                              className={`space-y-2 transition-colors min-h-[20px] ${
+                                snapshot.isDraggingOver ? 'bg-green-50 dark:bg-green-900/20 rounded p-2' : ''
+                              }`}
                             >
                               {article.subArticles?.map((subArticle, subIndex) => (
                                 <Draggable
@@ -296,15 +309,24 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                     <div
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
-                                      className={`bg-gray-50 dark:bg-gray-900 p-3 rounded ${
-                                        snapshot.isDragging ? 'shadow-lg opacity-90' : ''
+                                      className={`bg-gray-50 dark:bg-gray-900 p-3 rounded border transition-all ${
+                                        snapshot.isDragging
+                                          ? 'shadow-xl border-green-500 bg-green-50 dark:bg-green-900/50 scale-102 z-40'
+                                          : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                                       } ${isReordering ? 'opacity-50' : ''}`}
+                                      style={{
+                                        ...provided.draggableProps.style,
+                                        transform: snapshot.isDragging
+                                          ? `${provided.draggableProps.style?.transform} rotate(1deg)`
+                                          : provided.draggableProps.style?.transform,
+                                      }}
                                     >
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
                                           <div
                                             {...provided.dragHandleProps}
-                                            className="cursor-move text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                                            className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            title="Drag to reorder sub-article"
                                           >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
