@@ -23,5 +23,26 @@ export const reorderSchema = z.object({
   ),
 })
 
+export const documentationSchema = z.object({
+  title: z.string().min(1).max(255),
+  subtitle: z.union([z.string(), z.null()]).optional().transform(val => val === '' || val === null ? null : val),
+  content: z.string().min(1, "Content is required and cannot be empty"),
+  orderPosition: z.number().int().min(0).optional(),
+  textAlign: z.enum(['left', 'right']).default('left'),
+  verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
+  parentId: z.string().uuid().nullable().optional(),
+})
+
+export const reorderDocsSchema = z.object({
+  docs: z.array(
+    z.object({
+      id: z.string().uuid(),
+      orderPosition: z.number().int().min(0),
+    })
+  ),
+})
+
 export type ArticleInput = z.infer<typeof articleSchema>
 export type ReorderInput = z.infer<typeof reorderSchema>
+export type DocumentationInput = z.infer<typeof documentationSchema>
+export type ReorderDocsInput = z.infer<typeof reorderDocsSchema>

@@ -45,3 +45,23 @@ model Article {
   @@index([published])
   @@map("articles")
 }
+
+model Documentation {
+  id            String          @id @default(uuid())
+  title         String          @db.VarChar(255)
+  subtitle      String?         @db.VarChar(500)
+  content       String          @db.Text
+  orderPosition Int             @map("order_position")
+  textAlign     String          @default("left") @map("text_align") // "left" or "right"
+  verticalAlign String          @default("center") @map("vertical_align") // "top", "center", or "bottom"
+  parentId      String?         @map("parent_id") // NULL for main docs, parent ID for sub-docs
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  parent        Documentation?  @relation("DocumentationToSubDocs", fields: [parentId], references: [id], onDelete: Cascade)
+  subDocs       Documentation[] @relation("DocumentationToSubDocs")
+
+  @@index([orderPosition])
+  @@index([parentId])
+  @@map("documentation")
+}
