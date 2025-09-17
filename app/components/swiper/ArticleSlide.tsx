@@ -50,6 +50,10 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
   const handleComplete = async () => {
     if (loading) return
 
+    // Show confirmation dialog
+    const confirmed = confirm('Are you sure you have completed this step?')
+    if (!confirmed) return
+
     setLoading(true)
     try {
       if (onComplete) {
