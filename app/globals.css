@@ -390,5 +390,19 @@ body > div:last-of-type[style*="fixed"] {
 
 /* Override .bg-white in dark mode */
 .dark .bg-white {
-  background-color: #111827 !important;
+  background-color: rgb(26 26 26) !important;
+}
+
+/* Custom dark mode text colors */
+.dark .text-gray-900 {
+  color: rgb(156 163 175) !important;
+}
+
+.dark .text-gray-600 {
+  color: rgb(156 163 175) !important;
+}
+
+/* Custom dark mode background colors */
+.dark .bg-gray-900 {
+  background-color: rgb(35 35 35) !important;
 }

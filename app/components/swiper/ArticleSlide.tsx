@@ -110,8 +110,8 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
         </div>
       </div>
 
-      {/* Fixed Complete button for project slides - only show on project sub-articles */}
-      {article.isProject && article.parentId && (
+      {/* Fixed Complete button for project slides */}
+      {article.isProject && (
         <div className="fixed bottom-8 right-8 z-10">
           <button
             onClick={handleComplete}
