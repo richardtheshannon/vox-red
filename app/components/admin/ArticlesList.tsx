@@ -2,21 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
-import { DropResult } from 'react-beautiful-dnd'
-
-const DragDropContext = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.DragDropContext),
-  { ssr: false }
-)
-const Droppable = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.Droppable),
-  { ssr: false }
-)
-const Draggable = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.Draggable),
-  { ssr: false }
-)
 import Button from '../ui/Button'
 import { useRouter } from 'next/navigation'
 
@@ -45,109 +30,104 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     setArticles(initialArticles)
   }, [initialArticles])
 
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return
+  const moveArticle = async (articleId: string, direction: 'up' | 'down') => {
+    const currentIndex = articles.findIndex(a => a.id === articleId)
+    if (currentIndex === -1) return
 
-    const { source, destination } = result
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (newIndex < 0 || newIndex >= articles.length) return
 
-    // Handle main article reordering
-    if (source.droppableId === 'articles' && destination.droppableId === 'articles') {
-      const items = Array.from(articles)
-      const [reorderedItem] = items.splice(source.index, 1)
-      items.splice(destination.index, 0, reorderedItem)
+    const newArticles = [...articles]
+    const [movedArticle] = newArticles.splice(currentIndex, 1)
+    newArticles.splice(newIndex, 0, movedArticle)
 
-      const updatedItems = items.map((item, index) => ({
-        ...item,
-        orderPosition: index,
-      }))
+    const updatedArticles = newArticles.map((article, index) => ({
+      ...article,
+      orderPosition: index,
+    }))
 
-      setArticles(updatedItems)
-      setIsReordering(true)
+    setArticles(updatedArticles)
+    setIsReordering(true)
 
-      try {
-        const response = await fetch('/api/articles/reorder', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            articles: updatedItems.map((item) => ({
-              id: item.id,
-              orderPosition: item.orderPosition,
-            })),
-          }),
-        })
+    try {
+      const response = await fetch('/api/articles/reorder', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          articles: updatedArticles.map((item) => ({
+            id: item.id,
+            orderPosition: item.orderPosition,
+          })),
+        }),
+      })
 
-        if (!response.ok) {
-          throw new Error('Failed to reorder articles')
-        }
-
-        router.refresh()
-      } catch (error) {
-        console.error('Error reordering articles:', error)
-        setArticles(initialArticles)
-      } finally {
-        setIsReordering(false)
+      if (!response.ok) {
+        throw new Error('Failed to reorder articles')
       }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error reordering articles:', error)
+      setArticles(initialArticles)
+    } finally {
+      setIsReordering(false)
     }
+  }
 
-    // Handle sub-article reordering
-    if (source.droppableId.startsWith('sub-') && destination.droppableId.startsWith('sub-')) {
-      const parentId = source.droppableId.replace('sub-', '')
+  const moveSubArticle = async (parentId: string, subArticleId: string, direction: 'up' | 'down') => {
+    const parentArticle = articles.find(a => a.id === parentId)
+    if (!parentArticle?.subArticles) return
 
-      if (source.droppableId === destination.droppableId) {
-        // Reordering within the same parent
-        const newArticles = articles.map(article => {
-          if (article.id === parentId && article.subArticles) {
-            const subItems = Array.from(article.subArticles)
-            const [reorderedSubItem] = subItems.splice(source.index, 1)
-            subItems.splice(destination.index, 0, reorderedSubItem)
+    const currentIndex = parentArticle.subArticles.findIndex(sa => sa.id === subArticleId)
+    if (currentIndex === -1) return
 
-            const updatedSubItems = subItems.map((subItem, index) => ({
-              ...subItem,
-              orderPosition: index,
-            }))
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (newIndex < 0 || newIndex >= parentArticle.subArticles.length) return
 
-            return {
-              ...article,
-              subArticles: updatedSubItems
-            }
-          }
-          return article
-        })
+    const newSubArticles = [...parentArticle.subArticles]
+    const [movedSubArticle] = newSubArticles.splice(currentIndex, 1)
+    newSubArticles.splice(newIndex, 0, movedSubArticle)
 
-        setArticles(newArticles)
-        setIsReordering(true)
+    const updatedSubArticles = newSubArticles.map((subArticle, index) => ({
+      ...subArticle,
+      orderPosition: index,
+    }))
 
-        try {
-          const parentArticle = newArticles.find(a => a.id === parentId)
-          if (parentArticle?.subArticles) {
-            const response = await fetch('/api/articles/reorder', {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                articles: parentArticle.subArticles.map((item) => ({
-                  id: item.id,
-                  orderPosition: item.orderPosition,
-                })),
-              }),
-            })
+    const newArticles = articles.map(article =>
+      article.id === parentId
+        ? { ...article, subArticles: updatedSubArticles }
+        : article
+    )
 
-            if (!response.ok) {
-              throw new Error('Failed to reorder sub-articles')
-            }
+    setArticles(newArticles)
+    setIsReordering(true)
 
-            router.refresh()
-          }
-        } catch (error) {
-          console.error('Error reordering sub-articles:', error)
-          setArticles(initialArticles)
-        } finally {
-          setIsReordering(false)
-        }
+    try {
+      const response = await fetch('/api/articles/reorder', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          articles: updatedSubArticles.map((item) => ({
+            id: item.id,
+            orderPosition: item.orderPosition,
+          })),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to reorder sub-articles')
       }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error reordering sub-articles:', error)
+      setArticles(initialArticles)
+    } finally {
+      setIsReordering(false)
     }
   }
 
@@ -190,50 +170,38 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="articles" isDropDisabled={false} type="main-article">
-        {(provided, snapshot) => (
-          <div
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            className={`space-y-2 transition-colors ${
-              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2' : ''
-            }`}
-          >
-            {articles.map((article, index) => (
-              <Draggable
-                key={article.id}
-                draggableId={article.id}
-                index={index}
-                isDragDisabled={isReordering}
-              >
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    className={`bg-white dark:bg-gray-800 p-4 rounded-lg border-2 transition-all ${
-                      snapshot.isDragging
-                        ? 'shadow-2xl scale-105 border-blue-500 bg-blue-50 dark:bg-blue-900/50 z-50'
-                        : 'shadow border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                    } ${isReordering ? 'opacity-50' : ''}`}
-                    style={{
-                      ...provided.draggableProps.style,
-                      transform: snapshot.isDragging
-                        ? `${provided.draggableProps.style?.transform} rotate(2deg)`
-                        : provided.draggableProps.style?.transform,
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div
-                          {...provided.dragHandleProps}
-                          className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          title="Drag to reorder"
-                        >
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                        </div>
+    <div className="space-y-2">
+      {articles.map((article, index) => (
+        <div
+          key={article.id}
+          className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+            isReordering ? 'opacity-50' : ''
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex flex-col space-y-1">
+                <button
+                  onClick={() => moveArticle(article.id, 'up')}
+                  disabled={index === 0 || isReordering}
+                  className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  title="Move up"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => moveArticle(article.id, 'down')}
+                  disabled={index === articles.length - 1 || isReordering}
+                  className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  title="Move down"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
@@ -288,50 +256,38 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                     </div>
                     {/* Sub-articles section */}
                     {article.subArticles && article.subArticles.length > 0 && (
-                      <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                        <Droppable droppableId={`sub-${article.id}`} isDropDisabled={false} type="sub-article">
-                          {(provided, snapshot) => (
-                            <div
-                              {...provided.droppableProps}
-                              ref={provided.innerRef}
-                              className={`space-y-2 transition-colors min-h-[20px] ${
-                                snapshot.isDraggingOver ? 'bg-green-50 dark:bg-green-900/20 rounded p-2' : ''
-                              }`}
-                            >
-                              {article.subArticles?.map((subArticle, subIndex) => (
-                                <Draggable
-                                  key={subArticle.id}
-                                  draggableId={`sub-${subArticle.id}`}
-                                  index={subIndex}
-                                  isDragDisabled={isReordering}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      className={`bg-gray-50 dark:bg-gray-900 p-3 rounded border transition-all ${
-                                        snapshot.isDragging
-                                          ? 'shadow-xl border-green-500 bg-green-50 dark:bg-green-900/50 scale-102 z-40'
-                                          : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                                      } ${isReordering ? 'opacity-50' : ''}`}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                        transform: snapshot.isDragging
-                                          ? `${provided.draggableProps.style?.transform} rotate(1deg)`
-                                          : provided.draggableProps.style?.transform,
-                                      }}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                          <div
-                                            {...provided.dragHandleProps}
-                                            className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                            title="Drag to reorder sub-article"
-                                          >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                            </svg>
-                                          </div>
+                      <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4 space-y-2">
+                        {article.subArticles?.map((subArticle, subIndex) => (
+                          <div
+                            key={subArticle.id}
+                            className={`bg-gray-50 dark:bg-gray-900 p-3 rounded border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+                              isReordering ? 'opacity-50' : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="flex flex-col space-y-1">
+                                  <button
+                                    onClick={() => moveSubArticle(article.id, subArticle.id, 'up')}
+                                    disabled={subIndex === 0 || isReordering}
+                                    className="p-1 text-gray-400 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Move up"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => moveSubArticle(article.id, subArticle.id, 'down')}
+                                    disabled={subIndex === (article.subArticles?.length || 0) - 1 || isReordering}
+                                    className="p-1 text-gray-400 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Move down"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                </div>
                                           <div className="flex-1">
                                             <div className="flex items-center space-x-2">
                                               <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -372,23 +328,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                         </div>
                                       </div>
                                     </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </Droppable>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
-  )
+                          ))}
+                        </div>
+                      )
 }
