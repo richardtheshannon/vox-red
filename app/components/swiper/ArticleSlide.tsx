@@ -23,19 +23,6 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
-  const verticalAlign = article.verticalAlign || 'center'
-
-  // Determine vertical alignment classes
-  const getVerticalAlignClasses = () => {
-    switch (verticalAlign) {
-      case 'top':
-        return 'justify-start'
-      case 'bottom':
-        return 'justify-end'
-      default:
-        return 'justify-center'
-    }
-  }
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {

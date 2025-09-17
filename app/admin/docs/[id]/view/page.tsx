@@ -72,7 +72,7 @@ export default async function ViewDocPage({
               <Button variant="secondary">Edit Document</Button>
             </Link>
             <Link href="/admin/docs">
-              <Button variant="outline">Back to Docs</Button>
+              <Button variant="secondary">Back to Docs</Button>
             </Link>
           </div>
         </div>
