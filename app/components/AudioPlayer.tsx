@@ -19,6 +19,34 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const currentTrack = audioTracks[currentTrackIndex]
   const isCurrentTrack = isAutoPlaying && currentTrack?.articleId === articleId
 
+  // Check if this audio player is visible on the page
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const checkVisibility = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        const visible = rect.width > 0 && rect.height > 0
+        setIsVisible(visible)
+      }
+    }
+
+    checkVisibility()
+    // Check visibility on window events that might change what's visible
+    window.addEventListener('resize', checkVisibility)
+    window.addEventListener('scroll', checkVisibility)
+
+    // Also check after a short delay to handle dynamic content
+    const timer = setTimeout(checkVisibility, 100)
+
+    return () => {
+      window.removeEventListener('resize', checkVisibility)
+      window.removeEventListener('scroll', checkVisibility)
+      clearTimeout(timer)
+    }
+  }, [articleId])
+
   // Debug logging
   useEffect(() => {
     console.log(`AudioPlayer ${articleId}:`, {
@@ -27,9 +55,10 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       totalTracks: audioTracks.length,
       currentTrackId: currentTrack?.articleId,
       isCurrentTrack,
+      isVisible,
       audioUrl
     })
-  }, [isAutoPlaying, currentTrackIndex, audioTracks.length, currentTrack?.articleId, isCurrentTrack, articleId, audioUrl])
+  }, [isAutoPlaying, currentTrackIndex, audioTracks.length, currentTrack?.articleId, isCurrentTrack, isVisible, articleId, audioUrl])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -65,25 +94,44 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   // Auto-play event listeners
   useEffect(() => {
     const handleAutoPlayStart = () => {
-      console.log(`AudioPlayer ${articleId} received autoPlayStart event, isCurrentTrack:`, isCurrentTrack)
-      if (isCurrentTrack) {
-        const audio = audioRef.current
-        if (audio && !isPlaying) {
-          console.log(`AudioPlayer ${articleId} attempting to play audio`)
-          audio.play().then(() => {
-            console.log(`AudioPlayer ${articleId} started playing`)
-            setIsPlaying(true)
-          }).catch((error) => {
-            console.error(`AudioPlayer ${articleId} failed to play:`, error)
-          })
+      console.log(`AudioPlayer ${articleId} received autoPlayStart event, isCurrentTrack: ${isCurrentTrack}, isVisible: ${isVisible}`)
+      if (isCurrentTrack && audioRef.current) {
+        // Only play if this audio player is visible
+        if (!isVisible) {
+          console.log(`AudioPlayer ${articleId} is current track but not visible, skipping to next`)
+          // Skip to next track if this one isn't visible
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+          }, 100)
+          return
         }
+
+        const audio = audioRef.current
+        console.log(`AudioPlayer ${articleId} is current track and visible, attempting to play`)
+
+        // Reset audio to start and play
+        audio.currentTime = 0
+        audio.play().then(() => {
+          console.log(`AudioPlayer ${articleId} successfully started playing`)
+          setIsPlaying(true)
+        }).catch((error) => {
+          console.error(`AudioPlayer ${articleId} failed to play:`, error)
+          // If this audio failed to play, notify to try the next one
+          if (isAutoPlaying) {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+            }, 100)
+          }
+        })
       }
     }
 
     const handleAutoPlayStop = () => {
       const audio = audioRef.current
-      if (audio && isPlaying) {
+      if (audio) {
+        console.log(`AudioPlayer ${articleId} stopping due to autoPlayStop`)
         audio.pause()
+        audio.currentTime = 0
         setIsPlaying(false)
       }
     }
@@ -91,6 +139,7 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
     const handleStopAllAudio = () => {
       const audio = audioRef.current
       if (audio) {
+        console.log(`AudioPlayer ${articleId} stopping due to stopAllAudio`)
         audio.pause()
         audio.currentTime = 0
         setIsPlaying(false)
@@ -106,29 +155,31 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       window.removeEventListener('autoPlayStop', handleAutoPlayStop)
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
-  }, [isCurrentTrack, isPlaying])
+  }, [isCurrentTrack, articleId, isAutoPlaying, isVisible])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
     if (!audio) return
 
-    // Stop all other audio first
-    window.dispatchEvent(new CustomEvent('stopAllAudio'))
+    if (isPlaying) {
+      // Just pause this audio
+      audio.pause()
+      setIsPlaying(false)
+    } else {
+      // Stop all other audio first, then play this one
+      window.dispatchEvent(new CustomEvent('stopAllAudio'))
 
-    setTimeout(() => {
-      if (isPlaying) {
-        audio.pause()
-        setIsPlaying(false)
-      } else {
+      setTimeout(() => {
+        audio.currentTime = 0
         audio.play().then(() => {
           setIsPlaying(true)
         }).catch(console.error)
-      }
-    }, 100)
+      }, 100)
+    }
   }
 
   return (
-    <div className="inline-flex">
+    <div className="inline-flex" ref={containerRef}>
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
       <button
         onClick={togglePlayPause}

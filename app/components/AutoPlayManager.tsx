@@ -99,26 +99,22 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
       const newState = !prev
       console.log('Toggling auto-play to:', newState)
       if (newState) {
-        // Starting auto-play - find first visible track
+        // Starting auto-play
         console.log('Starting auto-play, available tracks:', audioTracks.length)
 
-        // Instead of starting at 0, find the first track that has a visible AudioPlayer
-        // We'll just start at 0 for now but skip to the first playable track
+        // First stop all audio to ensure clean start
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
         setCurrentTrackIndex(0)
         setTimeout(() => {
-          console.log('Dispatching autoPlayStart event')
+          console.log('Dispatching autoPlayStart event for track 0')
           window.dispatchEvent(new CustomEvent('autoPlayStart'))
-
-          // If the first track isn't playable, immediately try the next one
-          setTimeout(() => {
-            console.log('Checking if first track played, if not, advancing...')
-            window.dispatchEvent(new CustomEvent('autoPlayCheckAndAdvance'))
-          }, 1000)
-        }, 100)
+        }, 200) // Give time for audio to stop
       } else {
         // Stopping auto-play
         console.log('Stopping auto-play')
         window.dispatchEvent(new CustomEvent('autoPlayStop'))
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
       }
       return newState
     })
@@ -127,49 +123,38 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
   // Listen for audio end events to play next track
   useEffect(() => {
     const handleAudioEnd = () => {
+      console.log('Audio ended, checking for next track...')
       if (isAutoPlaying && audioTracks.length > 0) {
         const nextIndex = currentTrackIndex + 1
+        console.log(`Current track ${currentTrackIndex} ended, next index would be ${nextIndex}`)
+
         if (nextIndex < audioTracks.length) {
+          // First stop all audio to ensure clean transition
+          window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
+          // Update to next track index
           setCurrentTrackIndex(nextIndex)
-          // Stop current audio and start next track
+
+          // Wait for audio to stop, then start next track
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('stopAllAudio'))
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('autoPlayStart'))
-            }, 200)
-          }, 100)
+            console.log(`Starting next track: ${nextIndex}`)
+            window.dispatchEvent(new CustomEvent('autoPlayStart'))
+          }, 300) // Give enough time for audio cleanup
         } else {
           // End of playlist - stop auto-play
+          console.log('End of playlist, stopping auto-play')
           setIsAutoPlaying(false)
           setCurrentTrackIndex(0)
           window.dispatchEvent(new CustomEvent('autoPlayStop'))
-        }
-      }
-    }
-
-    const handleCheckAndAdvance = () => {
-      console.log('Checking and advancing to find playable track...')
-      if (isAutoPlaying && audioTracks.length > 0) {
-        // Try to advance to the next track that might be visible
-        const nextIndex = currentTrackIndex + 1
-        if (nextIndex < audioTracks.length) {
-          console.log(`Advancing from track ${currentTrackIndex} to ${nextIndex}`)
-          setCurrentTrackIndex(nextIndex)
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('autoPlayStart'))
-          }, 100)
-        } else {
-          console.log('No more tracks to try')
+          window.dispatchEvent(new CustomEvent('stopAllAudio'))
         }
       }
     }
 
     window.addEventListener('autoPlayAudioEnd', handleAudioEnd as EventListener)
-    window.addEventListener('autoPlayCheckAndAdvance', handleCheckAndAdvance as EventListener)
 
     return () => {
       window.removeEventListener('autoPlayAudioEnd', handleAudioEnd as EventListener)
-      window.removeEventListener('autoPlayCheckAndAdvance', handleCheckAndAdvance as EventListener)
     }
   }, [isAutoPlaying, currentTrackIndex, audioTracks.length])
 
