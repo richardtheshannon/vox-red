@@ -56,7 +56,7 @@ export default function ConditionalThemeToggle() {
   if (!mounted || isAdminPage || !isAuthenticated) return null
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex gap-2">
+    <div className="fixed top-6 right-6 z-50 flex gap-2">
       <button
         onClick={toggleTheme}
         className="p-2 transition-opacity hover:opacity-70"

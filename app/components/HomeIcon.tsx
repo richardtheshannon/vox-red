@@ -39,7 +39,7 @@ export default function HomeIcon() {
   return (
     <button
       onClick={handleHomeClick}
-      className="fixed top-4 left-4 z-50 p-2 transition-opacity hover:opacity-70"
+      className="fixed top-6 left-6 z-50 p-2 transition-opacity hover:opacity-70"
       aria-label="Go to first slide"
     >
       <Image

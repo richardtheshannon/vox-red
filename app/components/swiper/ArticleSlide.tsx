@@ -85,8 +85,26 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
 
   return (
     <div className="h-full flex flex-col relative">
-      {/* Scrollable content container with proper margins for navigation */}
-      <div className={`flex-1 overflow-y-auto overflow-x-hidden article-scroll`} style={{ paddingTop: '80px', paddingBottom: '80px', paddingLeft: '5px', paddingRight: '15px' }}>
+      {/* Fixed Header - 80px */}
+      <div className="absolute top-0 left-0 right-0 h-20 z-50 flex items-center justify-between px-4">
+        {/* Header icons will be positioned here by the existing components */}
+      </div>
+
+      {/* Fixed Footer - 80px */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 z-50 flex items-center justify-between px-4">
+        {/* Footer icons will be positioned here by the existing components */}
+      </div>
+
+      {/* Fixed height scrollable container with strict margins */}
+      <div
+        className="absolute inset-0 overflow-y-auto overflow-x-hidden article-scroll"
+        style={{
+          top: '80px',
+          bottom: '80px',
+          left: '5px',
+          right: '15px'
+        }}
+      >
         <div className={`flex flex-col ${getVerticalAlignClasses()} min-h-full`}>
           <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
             <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
@@ -114,7 +132,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
 
       {/* Complete button for project slides */}
       {article.isProject && (
-        <div className="absolute bottom-8 right-8 z-10">
+        <div className="absolute bottom-6 right-6 z-50">
           <button
             onClick={handleComplete}
             disabled={loading}
