@@ -36,6 +36,7 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentHorizontalIndex, setCurrentHorizontalIndex] = useState(0)
+  const [isSwiperReady, setIsSwiperReady] = useState(false)
   const { setCurrentPosition } = useAutoPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
@@ -71,6 +72,9 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
 
       const nextIndex = subSlideIndex + 1
       if (nextIndex < visibleSlides.length) {
+        // Stop all audio before moving to next sub-slide
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
         // Move to next sub-slide
         if (swiperRef.current) {
           swiperRef.current.slideTo(nextIndex)
@@ -81,9 +85,12 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
           }))
         }
       } else {
+        // Stop all audio before moving to next main slide
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
         // End of sub-slides, move to next main slide
-        window.dispatchEvent(new CustomEvent('autoPlayNext', {
-          detail: { currentSlideIndex: slideIndex, currentSubSlideIndex: 0 }
+        window.dispatchEvent(new CustomEvent('autoPlayNextMainSlide', {
+          detail: { currentSlideIndex: slideIndex }
         }))
       }
     }
@@ -167,7 +174,7 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
       <ArticleSlide
         article={visibleSlides[0]}
         onComplete={handleSlideComplete}
-        isAutoPlaying={isAutoPlaying && currentHorizontalIndex === 0}
+        isAutoPlaying={isAutoPlaying}
       />
     )
   }
@@ -178,7 +185,16 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
 
   return (
     <Swiper
-      onSwiper={(swiper) => { swiperRef.current = swiper }}
+      onSwiper={(swiper) => {
+        swiperRef.current = swiper
+        setCurrentHorizontalIndex(0) // Initialize to first slide
+        setIsSwiperReady(true)
+      }}
+      onSlideChange={(swiper) => {
+        setCurrentHorizontalIndex(swiper.activeIndex)
+        // Update position for auto-play tracking
+        setCurrentPosition(slideIndex, swiper.activeIndex)
+      }}
       modules={[Pagination, Keyboard, Mousewheel]}
       direction="horizontal"
       slidesPerView={1}
@@ -214,7 +230,7 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
           <ArticleSlide
             article={article}
             onComplete={handleSlideComplete}
-            isAutoPlaying={isAutoPlaying && currentHorizontalIndex === index}
+            isAutoPlaying={isAutoPlaying && isSwiperReady && currentHorizontalIndex === index}
           />
         </SwiperSlide>
       ))}

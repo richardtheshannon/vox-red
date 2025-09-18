@@ -1,6 +1,7 @@
 import { prisma } from '@/app/lib/database'
 import ClientArticlesSwiper from './components/ClientArticlesSwiper'
 import PasswordProtection from './components/PasswordProtection'
+import { shouldShowArticle } from './lib/publishingUtils'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,14 +20,25 @@ export default async function Home() {
     }
   })
 
-  // Filter articles based on visibility rules
+  // Filter articles based on visibility rules and apply dynamic publishing to sub-articles
   const visibleArticles = allMainArticles.filter(article => {
+    // Filter sub-articles with dynamic publishing rules for standard articles
+    const filteredSubArticles = article.subArticles.filter(subArticle => {
+      if (subArticle.isProject) {
+        return subArticle.published
+      }
+      return shouldShowArticle(subArticle)
+    })
+
+    // Update the article with filtered sub-articles
+    article.subArticles = filteredSubArticles
+
     // For projects: show if main article is published OR has published sub-articles
     if (article.isProject) {
       return article.published || article.subArticles.length > 0
     }
-    // For non-projects: only show if main article is published
-    return article.published
+    // For standard articles: apply dynamic publishing rules
+    return shouldShowArticle(article)
   })
 
   // Filter out completed projects (projects with no visible content)

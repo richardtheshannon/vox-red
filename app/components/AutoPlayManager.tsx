@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface AutoPlayContextType {
   isAutoPlaying: boolean
@@ -35,8 +36,13 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
     setIsAutoPlaying(prev => {
       const newState = !prev
       if (newState) {
-        // Starting auto-play - dispatch event to start playing current slide
-        window.dispatchEvent(new CustomEvent('autoPlayStart'))
+        // Starting auto-play - reset to first slide and start playing
+        setCurrentSlideIndex(0)
+        setCurrentSubSlideIndex(0)
+        window.dispatchEvent(new CustomEvent('autoPlayReset'))
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('autoPlayStart'))
+        }, 100)
       } else {
         // Stopping auto-play - dispatch event to pause current audio
         window.dispatchEvent(new CustomEvent('autoPlayStop'))
@@ -113,6 +119,11 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
 
 export default function AutoPlayIcon() {
   const { isAutoPlaying, toggleAutoPlay } = useAutoPlay()
+  const pathname = usePathname()
+
+  // Don't show on admin pages
+  const isAdminPage = pathname?.startsWith('/admin')
+  if (isAdminPage) return null
 
   return (
     <div className="fixed top-6 left-20 z-50">

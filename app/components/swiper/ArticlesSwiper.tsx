@@ -31,8 +31,9 @@ interface ArticlesSwiperProps {
 
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
+  const [activeVerticalIndex, setActiveVerticalIndex] = useState(0)
   const { refreshTrigger } = useRealtime()
-  const { isAutoPlaying, currentSlideIndex, setCurrentPosition } = useAutoPlay()
+  const { isAutoPlaying, setCurrentPosition } = useAutoPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -81,6 +82,9 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           detail: { slideIndex, subSlideIndex }
         }))
       } else {
+        // Stop all audio before moving to next main slide
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
         // Move to next main slide
         const nextSlideIndex = slideIndex + 1
         if (nextSlideIndex < articles.length) {
@@ -92,12 +96,37 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
             }))
           }
         } else {
-          // End of slides - reset auto-play
+          // End of slides - stop all audio and reset auto-play
+          window.dispatchEvent(new CustomEvent('stopAllAudio'))
           window.dispatchEvent(new CustomEvent('autoPlayReset'))
           if (swiperRef.current) {
             swiperRef.current.slideTo(0)
             setCurrentPosition(0, 0)
           }
+        }
+      }
+    }
+
+    const handleAutoPlayNextMainSlide = (event: CustomEvent) => {
+      const { currentSlideIndex: slideIndex } = event.detail
+
+      // Move to next main slide
+      const nextSlideIndex = slideIndex + 1
+      if (nextSlideIndex < articles.length) {
+        if (swiperRef.current) {
+          swiperRef.current.slideTo(nextSlideIndex)
+          setCurrentPosition(nextSlideIndex, 0)
+          window.dispatchEvent(new CustomEvent('autoPlaySlideChange', {
+            detail: { slideIndex: nextSlideIndex, subSlideIndex: 0 }
+          }))
+        }
+      } else {
+        // End of slides - stop all audio and reset auto-play
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+        window.dispatchEvent(new CustomEvent('autoPlayReset'))
+        if (swiperRef.current) {
+          swiperRef.current.slideTo(0)
+          setCurrentPosition(0, 0)
         }
       }
     }
@@ -110,10 +139,12 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     }
 
     window.addEventListener('autoPlayNext', handleAutoPlayNext as EventListener)
+    window.addEventListener('autoPlayNextMainSlide', handleAutoPlayNextMainSlide as EventListener)
     window.addEventListener('autoPlayReset', handleAutoPlayReset)
 
     return () => {
       window.removeEventListener('autoPlayNext', handleAutoPlayNext as EventListener)
+      window.removeEventListener('autoPlayNextMainSlide', handleAutoPlayNextMainSlide as EventListener)
       window.removeEventListener('autoPlayReset', handleAutoPlayReset)
     }
   }, [articles, setCurrentPosition])
@@ -132,7 +163,15 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
   return (
     <div className="h-screen w-full relative">
       <Swiper
-        onSwiper={(swiper) => (swiperRef.current = swiper)}
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper
+          setActiveVerticalIndex(0) // Initialize to first slide
+        }}
+        onSlideChange={(swiper) => {
+          setActiveVerticalIndex(swiper.activeIndex)
+          // Update position for auto-play tracking
+          setCurrentPosition(swiper.activeIndex, 0)
+        }}
         modules={[Pagination, Keyboard, Mousewheel]}
         direction="vertical"
         slidesPerView={1}
@@ -166,7 +205,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
             ) : (
               <ArticleSlide
                 article={article}
-                isAutoPlaying={isAutoPlaying && currentSlideIndex === index}
+                isAutoPlaying={isAutoPlaying && activeVerticalIndex === index}
               />
             )}
           </SwiperSlide>

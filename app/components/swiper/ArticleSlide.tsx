@@ -26,16 +26,17 @@ export default function ArticleSlide({ article, onComplete, isAutoPlaying = fals
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
 
-  // Handle auto-play for slides without audio
+  // Handle auto-play timing based on audio presence
   useEffect(() => {
     if (isAutoPlaying && !article.audioUrl) {
-      // If auto-playing and no audio, automatically move to next slide after 3 seconds
+      // No audio: wait 15 seconds then move to next slide
       const timer = setTimeout(() => {
         window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
-      }, 3000)
+      }, 15000)
 
       return () => clearTimeout(timer)
     }
+    // If there's audio, let the AudioPlayer handle timing via audio completion
   }, [isAutoPlaying, article.audioUrl])
 
   // Determine text alignment classes

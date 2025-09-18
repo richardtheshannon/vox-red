@@ -23,8 +23,10 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
 
     const handleEnded = () => {
       setIsPlaying(false)
-      // Dispatch auto-play audio end event
-      window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+      // Dispatch event when audio completes during auto-play
+      if (autoPlay) {
+        window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+      }
     }
 
     const handleLoadStart = () => {
@@ -40,7 +42,7 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('loadstart', handleLoadStart)
     }
-  }, [audioUrl])
+  }, [audioUrl, autoPlay])
 
   // Auto-play event listeners
   useEffect(() => {
@@ -62,12 +64,23 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
       }
     }
 
+    const handleStopAllAudio = () => {
+      const audio = audioRef.current
+      if (audio) {
+        audio.pause()
+        audio.currentTime = 0
+        setIsPlaying(false)
+      }
+    }
+
     window.addEventListener('autoPlayStart', handleAutoPlayStart)
     window.addEventListener('autoPlayStop', handleAutoPlayStop)
+    window.addEventListener('stopAllAudio', handleStopAllAudio)
 
     return () => {
       window.removeEventListener('autoPlayStart', handleAutoPlayStart)
       window.removeEventListener('autoPlayStop', handleAutoPlayStop)
+      window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
   }, [autoPlay, isPlaying])
 
@@ -82,6 +95,14 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
         }, 500) // Small delay to ensure slide transition is complete
 
         return () => clearTimeout(timer)
+      }
+    } else {
+      // Stop audio if auto-play is disabled or this slide is not active
+      const audio = audioRef.current
+      if (audio && isPlaying) {
+        audio.pause()
+        audio.currentTime = 0
+        setIsPlaying(false)
       }
     }
   }, [autoPlay, isPlaying])

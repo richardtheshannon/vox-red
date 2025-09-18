@@ -12,6 +12,18 @@ export const articleSchema = z.object({
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
   parentId: z.string().uuid().nullable().optional(),
+  publishTimeStart: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()
+  ),
+  publishTimeEnd: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()
+  ),
+  publishDays: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().max(200).nullable().optional()
+  ),
 })
 
 export const reorderSchema = z.object({
