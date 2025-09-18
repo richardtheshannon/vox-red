@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/admin/dashboard" className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  CMS Admin
+                  vox.red
                 </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

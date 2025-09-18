@@ -86,9 +86,10 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
   return (
     <div className="h-full flex flex-col relative">
       {/* Scrollable content container with proper margins for navigation */}
-      <div className={`flex-1 overflow-y-auto overflow-x-hidden article-scroll flex flex-col ${getVerticalAlignClasses()}`} style={{ paddingTop: '80px', paddingBottom: '80px', paddingLeft: '5px', paddingRight: '15px' }}>
-        <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
-          <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden article-scroll`} style={{ paddingTop: '80px', paddingBottom: '80px', paddingLeft: '5px', paddingRight: '15px' }}>
+        <div className={`flex flex-col ${getVerticalAlignClasses()} min-h-full`}>
+          <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
+            <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
             <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
               <span>{article.title}</span>
               {article.audioUrl && (
@@ -106,6 +107,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
               className={`text-gray-700 dark:text-gray-300 prose dark:prose-invert max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
+            </div>
           </div>
         </div>
       </div>
