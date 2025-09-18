@@ -7,6 +7,7 @@ import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import HorizontalSlides from './HorizontalSlides'
 import { useRealtime } from '@/app/hooks/useRealtime'
+import { useAutoRowPlay } from '../AutoRowPlayManager'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -31,6 +32,7 @@ interface ArticlesSwiperProps {
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
   const { refreshTrigger } = useRealtime()
+  const { updateCurrentRow } = useAutoRowPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -103,9 +105,14 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       <Swiper
         onSwiper={(swiper) => {
           swiperRef.current = swiper
+          // Initialize current row on swiper mount
+          updateCurrentRow(0)
         }}
-        onSlideChange={() => {
-          // Slide change handling removed for simplified auto-play
+        onSlideChange={(swiper) => {
+          // Update current row for auto-row-play when user changes vertical slides
+          const currentSlideIndex = swiper.activeIndex
+          console.log('ArticlesSwiper: Slide changed to index:', currentSlideIndex)
+          updateCurrentRow(currentSlideIndex)
         }}
         modules={[Pagination, Keyboard, Mousewheel]}
         direction="vertical"

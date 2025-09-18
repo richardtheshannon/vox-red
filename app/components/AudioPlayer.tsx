@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAutoPlay } from './AutoPlayManager'
+import { useAutoRowPlay } from './AutoRowPlayManager'
 
 interface AudioPlayerProps {
   audioUrl: string
@@ -14,10 +15,15 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const [isLoading, setIsLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
   const { isAutoPlaying, currentTrackIndex, audioTracks } = useAutoPlay()
+  const { isAutoRowPlaying, currentRowTrackIndex, currentRowAudioTracks } = useAutoRowPlay()
 
   // Check if this is the current track in auto-play
   const currentTrack = audioTracks[currentTrackIndex]
   const isCurrentTrack = isAutoPlaying && currentTrack?.articleId === articleId
+
+  // Check if this is the current track in auto-row-play
+  const currentRowTrack = currentRowAudioTracks[currentRowTrackIndex]
+  const isCurrentRowTrack = isAutoRowPlaying && currentRowTrack?.articleId === articleId
 
   // Debug logging
   useEffect(() => {
@@ -27,9 +33,14 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       totalTracks: audioTracks.length,
       currentTrackId: currentTrack?.articleId,
       isCurrentTrack,
+      isAutoRowPlaying,
+      currentRowTrackIndex,
+      totalRowTracks: currentRowAudioTracks.length,
+      currentRowTrackId: currentRowTrack?.articleId,
+      isCurrentRowTrack,
       audioUrl
     })
-  }, [isAutoPlaying, currentTrackIndex, audioTracks.length, currentTrack?.articleId, isCurrentTrack, articleId, audioUrl])
+  }, [isAutoPlaying, currentTrackIndex, audioTracks.length, currentTrack?.articleId, isCurrentTrack, isAutoRowPlaying, currentRowTrackIndex, currentRowAudioTracks.length, currentRowTrack?.articleId, isCurrentRowTrack, articleId, audioUrl])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -44,6 +55,10 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       // Dispatch event when audio completes during auto-play
       if (isCurrentTrack) {
         window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+      }
+      // Dispatch event when audio completes during auto-row-play
+      if (isCurrentRowTrack) {
+        window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
       }
     }
 
@@ -60,7 +75,7 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('loadstart', handleLoadStart)
     }
-  }, [audioUrl, isCurrentTrack])
+  }, [audioUrl, isCurrentTrack, isCurrentRowTrack])
 
   // Auto-play event listeners
   useEffect(() => {
@@ -81,6 +96,12 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
           if (isAutoPlaying) {
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+            }, 100)
+          }
+          // Also handle for auto-row-play
+          if (isAutoRowPlaying) {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
             }, 100)
           }
         })
@@ -107,16 +128,53 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       }
     }
 
+    const handleAutoRowPlayStart = () => {
+      console.log(`AudioPlayer ${articleId} received autoRowPlayStart event, isCurrentRowTrack: ${isCurrentRowTrack}`)
+      if (isCurrentRowTrack && audioRef.current) {
+        const audio = audioRef.current
+        console.log(`AudioPlayer ${articleId} is current row track, attempting to play`)
+
+        // Reset audio to start and play
+        audio.currentTime = 0
+        audio.play().then(() => {
+          console.log(`AudioPlayer ${articleId} successfully started playing (row play)`)
+          setIsPlaying(true)
+        }).catch((error) => {
+          console.error(`AudioPlayer ${articleId} failed to play (row play):`, error)
+          // If this audio failed to play, notify to try the next one
+          if (isAutoRowPlaying) {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
+            }, 100)
+          }
+        })
+      }
+    }
+
+    const handleAutoRowPlayStop = () => {
+      const audio = audioRef.current
+      if (audio) {
+        console.log(`AudioPlayer ${articleId} stopping due to autoRowPlayStop`)
+        audio.pause()
+        audio.currentTime = 0
+        setIsPlaying(false)
+      }
+    }
+
     window.addEventListener('autoPlayStart', handleAutoPlayStart)
     window.addEventListener('autoPlayStop', handleAutoPlayStop)
+    window.addEventListener('autoRowPlayStart', handleAutoRowPlayStart)
+    window.addEventListener('autoRowPlayStop', handleAutoRowPlayStop)
     window.addEventListener('stopAllAudio', handleStopAllAudio)
 
     return () => {
       window.removeEventListener('autoPlayStart', handleAutoPlayStart)
       window.removeEventListener('autoPlayStop', handleAutoPlayStop)
+      window.removeEventListener('autoRowPlayStart', handleAutoRowPlayStart)
+      window.removeEventListener('autoRowPlayStop', handleAutoRowPlayStop)
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
-  }, [isCurrentTrack, articleId, isAutoPlaying])
+  }, [isCurrentTrack, articleId, isAutoPlaying, isCurrentRowTrack, isAutoRowPlaying])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
@@ -148,6 +206,8 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
         className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
           isCurrentTrack
             ? 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700'
+            : isCurrentRowTrack
+            ? 'bg-green-100 hover:bg-green-200 dark:bg-green-800 dark:hover:bg-green-700'
             : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600'
         } disabled:opacity-50`}
         aria-label={isPlaying ? 'Pause audio' : 'Play audio'}

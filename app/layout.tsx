@@ -7,6 +7,8 @@ import AdminSettingsIcon from './components/AdminSettingsIcon';
 import HomeIcon from './components/HomeIcon';
 import { AutoPlayProvider } from './components/AutoPlayManager';
 import AutoPlayIcon from './components/AutoPlayManager';
+import { AutoRowPlayProvider } from './components/AutoRowPlayManager';
+import AutoRowPlayIcon from './components/AutoRowPlayManager';
 
 const unicaOne = Unica_One({
   weight: '400',
@@ -60,11 +62,14 @@ export default function RootLayout({
       >
         <SessionProvider>
           <AutoPlayProvider>
-            <ConditionalThemeToggle />
-            <AdminSettingsIcon />
-            <HomeIcon />
-            <AutoPlayIcon />
-            {children}
+            <AutoRowPlayProvider>
+              <ConditionalThemeToggle />
+              <AdminSettingsIcon />
+              <HomeIcon />
+              <AutoPlayIcon />
+              <AutoRowPlayIcon />
+              {children}
+            </AutoRowPlayProvider>
           </AutoPlayProvider>
         </SessionProvider>
       </body>
