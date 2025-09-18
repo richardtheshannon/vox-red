@@ -198,7 +198,7 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       window.removeEventListener('autoRowPlayStop', handleAutoRowPlayStop)
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
-  }, [isCurrentTrack, articleId, isAutoPlaying, isCurrentRowTrack, isAutoRowPlaying])
+  }, [isCurrentTrack, articleId, isAutoPlaying, isCurrentRowTrack, isAutoRowPlaying, currentRowAudioTracks])
 
   const togglePlayPause = () => {
     const audio = audioRef.current

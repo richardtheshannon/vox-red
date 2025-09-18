@@ -178,7 +178,7 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
       setCurrentRowAudioTracks(rowTracks)
       setCurrentRowTrackIndex(0)
     }
-  }, [allArticles]) // Only depend on articles loading, not currentVerticalIndex
+  }, [allArticles, currentVerticalIndex]) // Include currentVerticalIndex dependency
 
   const toggleAutoRowPlay = () => {
     setIsAutoRowPlaying(prev => {
@@ -223,7 +223,7 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
 
               // Try to find an AudioPlayer that's actually available
               // First try the intended track
-              let targetTrack = firstTrack
+              const targetTrack = firstTrack
               console.log('>>> DISPATCHING autoRowPlayStart event for articleId:', targetTrack.articleId)
               console.log('>>> Expected AudioPlayer to respond:', targetTrack.articleId)
 
@@ -242,7 +242,7 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
               console.log('>>> ATTEMPTING to find available AudioPlayer for first track (main slide):', firstTrack.articleId)
 
               // Try to find an AudioPlayer that's actually available
-              let targetTrack = firstTrack
+              const targetTrack = firstTrack
               console.log('>>> DISPATCHING autoRowPlayStart event for articleId:', targetTrack.articleId)
               console.log('>>> Expected AudioPlayer to respond:', targetTrack.articleId)
 
