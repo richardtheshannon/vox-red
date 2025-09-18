@@ -1,7 +1,9 @@
 'use client'
 
+import { useMemo, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import LoadingSpinner from './ui/LoadingSpinner'
+import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
 const ArticlesSwiper = dynamic(() => import('./swiper/ArticlesSwiper'), {
   ssr: false,
@@ -26,6 +28,11 @@ interface Article {
   verticalAlign?: string
   parentId?: string | null
   subArticles?: Article[]
+  published: boolean
+  isProject: boolean
+  publishTimeStart?: string | null
+  publishTimeEnd?: string | null
+  publishDays?: string | null
 }
 
 interface ClientArticlesSwiperProps {
@@ -33,5 +40,41 @@ interface ClientArticlesSwiperProps {
 }
 
 export default function ClientArticlesSwiper({ initialArticles }: ClientArticlesSwiperProps) {
-  return <ArticlesSwiper initialArticles={initialArticles} />
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  // Update time every minute to check if articles should appear/disappear
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60000) // Check every minute
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Filter articles based on current browser time and day
+  const filteredArticles = useMemo(() => {
+    return initialArticles.filter(article => {
+      // Filter sub-articles first
+      if (article.subArticles) {
+        const filteredSubArticles = article.subArticles.filter(subArticle => {
+          if (subArticle.isProject) {
+            return subArticle.published
+          }
+          return shouldShowArticle(subArticle)
+        })
+        article.subArticles = filteredSubArticles
+      }
+
+      // For projects: already filtered server-side based on published state
+      if (article.isProject) {
+        return true
+      }
+
+      // For standard articles: apply time/day filtering on client
+      return shouldShowArticle(article)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialArticles, currentTime])
+
+  return <ArticlesSwiper initialArticles={filteredArticles} />
 }

@@ -3,7 +3,6 @@ import { prisma } from '@/app/lib/database'
 import { auth } from '@/app/lib/auth'
 import { articleSchema } from '@/app/lib/validations'
 import { sseManager } from '@/app/lib/realtime'
-import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
 export async function GET() {
   try {
@@ -21,37 +20,17 @@ export async function GET() {
       }
     })
 
-    // Filter articles based on visibility rules and apply dynamic publishing to sub-articles
-    const visibleArticles = allMainArticles.filter(article => {
-      // Filter sub-articles with dynamic publishing rules for standard articles
-      const filteredSubArticles = article.subArticles.filter(subArticle => {
-        if (subArticle.isProject) {
-          return subArticle.published
-        }
-        return shouldShowArticle(subArticle)
-      })
-
-      // Update the article with filtered sub-articles
-      article.subArticles = filteredSubArticles
-
+    // Basic server-side filtering for published state only (no time/day filtering here)
+    const publishedArticles = allMainArticles.filter(article => {
       // For projects: show if main article is published OR has published sub-articles
       if (article.isProject) {
         return article.published || article.subArticles.length > 0
       }
-      // For standard articles: apply dynamic publishing rules
-      return shouldShowArticle(article)
+      // For standard articles: must be published (time/day filtering happens on client)
+      return article.published
     })
 
-    // Filter out completed projects (projects with no visible content)
-    const activeArticles = visibleArticles.filter(article => {
-      if (article.isProject) {
-        // Project is active if main article is published OR has published sub-articles
-        return article.published || article.subArticles.length > 0
-      }
-      return true
-    })
-
-    return NextResponse.json(activeArticles)
+    return NextResponse.json(publishedArticles)
   } catch (error) {
     console.error('Error fetching articles:', error)
     return NextResponse.json(
