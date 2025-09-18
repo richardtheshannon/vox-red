@@ -17,6 +17,9 @@ export default async function ArticlesPage() {
       parentId: true,
       published: true,
       isProject: true,
+      publishTimeStart: true,
+      publishTimeEnd: true,
+      publishDays: true,
       subArticles: {
         orderBy: { orderPosition: 'asc' },
         select: {
@@ -27,7 +30,10 @@ export default async function ArticlesPage() {
           updatedAt: true,
           parentId: true,
           published: true,
-          isProject: true
+          isProject: true,
+          publishTimeStart: true,
+          publishTimeEnd: true,
+          publishDays: true
         }
       }
     }

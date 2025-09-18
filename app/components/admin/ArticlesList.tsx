@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Button from '../ui/Button'
 import { useRouter } from 'next/navigation'
+import { formatDaysForDisplay } from '@/app/lib/publishingUtils'
 
 interface Article {
   id: string
@@ -15,10 +16,50 @@ interface Article {
   subArticles?: Article[]
   published?: boolean
   isProject?: boolean
+  publishTimeStart?: string | null
+  publishTimeEnd?: string | null
+  publishDays?: string | null
 }
 
 interface ArticlesListProps {
   initialArticles: Article[]
+}
+
+// Helper function to convert 24-hour time to 12-hour AM/PM format
+function formatTimeToAMPM(time24: string): string {
+  const [hours, minutes] = time24.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes.toString().padStart(2, '0')}${period}`
+}
+
+// Helper function to format publishing schedule for display
+function formatPublishingSchedule(article: Article): string | null {
+  // Only show scheduling info for standard articles (not projects)
+  if (article.isProject) {
+    return null
+  }
+
+  const hasTimeSchedule = article.publishTimeStart && article.publishTimeEnd
+  const hasDaySchedule = article.publishDays && article.publishDays !== 'all'
+
+  if (!hasTimeSchedule && !hasDaySchedule) {
+    return null
+  }
+
+  const parts: string[] = []
+
+  if (hasTimeSchedule) {
+    const startTimeAMPM = formatTimeToAMPM(article.publishTimeStart!)
+    const endTimeAMPM = formatTimeToAMPM(article.publishTimeEnd!)
+    parts.push(`${startTimeAMPM}-${endTimeAMPM}`)
+  }
+
+  if (hasDaySchedule) {
+    parts.push(formatDaysForDisplay(article.publishDays))
+  }
+
+  return parts.join(', ')
 }
 
 export default function ArticlesList({ initialArticles }: ArticlesListProps) {
@@ -259,6 +300,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                 Project
                               </span>
                             )}
+                            {formatPublishingSchedule(article) && (
+                              <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                {formatPublishingSchedule(article)}
+                              </span>
+                            )}
                           </div>
                           {article.subtitle && (
                             <p className="text-sm text-gray-500 dark:text-gray-400">{article.subtitle}</p>
@@ -343,6 +389,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                               }`}>
                                                 {subArticle.published ? 'Published' : 'Unpublished'}
                                               </span>
+                                              {formatPublishingSchedule(subArticle) && (
+                                                <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                  {formatPublishingSchedule(subArticle)}
+                                                </span>
+                                              )}
                                             </div>
                                             {subArticle.subtitle && (
                                               <p className="text-xs text-gray-500 dark:text-gray-400">{subArticle.subtitle}</p>
