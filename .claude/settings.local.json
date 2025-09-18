@@ -14,7 +14,8 @@
       "Bash(curl:*)",
       "Bash(git push:*)",
       "Bash(node check-projects.js)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(tasklist)"
     ],
     "deny": [],
     "ask": []

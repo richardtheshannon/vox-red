@@ -44,14 +44,7 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
 
     const handleEnded = () => {
       setIsPlaying(false)
-      // Dispatch event when audio completes during auto-play
-      if (isCurrentTrack) {
-        window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
-      }
-      // Dispatch event when audio completes during auto-row-play
-      if (isCurrentRowTrack) {
-        window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
-      }
+      // No longer need to dispatch events - direct control handles progression
     }
 
     const handleLoadStart = () => {
@@ -67,49 +60,10 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('loadstart', handleLoadStart)
     }
-  }, [audioUrl, isCurrentTrack, isCurrentRowTrack])
+  }, [audioUrl])
 
-  // Auto-play event listeners
+  // No longer need complex event listeners - using direct DOM manipulation
   useEffect(() => {
-    const handleAutoPlayStart = () => {
-      console.log(`AudioPlayer ${articleId} received autoPlayStart event, isCurrentTrack: ${isCurrentTrack}`)
-      if (isCurrentTrack && audioRef.current) {
-        const audio = audioRef.current
-        console.log(`AudioPlayer ${articleId} is current track, attempting to play`)
-
-        // Reset audio to start and play
-        audio.currentTime = 0
-        audio.play().then(() => {
-          console.log(`AudioPlayer ${articleId} successfully started playing`)
-          setIsPlaying(true)
-        }).catch((error) => {
-          console.error(`AudioPlayer ${articleId} failed to play:`, error)
-          // If this audio failed to play, notify to try the next one
-          if (isAutoPlaying) {
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
-            }, 100)
-          }
-          // Also handle for auto-row-play
-          if (isAutoRowPlaying) {
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
-            }, 100)
-          }
-        })
-      }
-    }
-
-    const handleAutoPlayStop = () => {
-      const audio = audioRef.current
-      if (audio) {
-        console.log(`AudioPlayer ${articleId} stopping due to autoPlayStop`)
-        audio.pause()
-        audio.currentTime = 0
-        setIsPlaying(false)
-      }
-    }
-
     const handleStopAllAudio = () => {
       const audio = audioRef.current
       if (audio) {
@@ -120,85 +74,13 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       }
     }
 
-    const handleAutoRowPlayStart = (event: CustomEvent) => {
-      const targetArticleId = event.detail?.articleId
-      const fallbackTracks = event.detail?.fallbackTracks || []
-      console.log(`=== AUDIO PLAYER RECEIVED EVENT ===`)
-      console.log(`AudioPlayer ${articleId} received autoRowPlayStart event for target: ${targetArticleId}`)
-      console.log(`Fallback tracks available:`, fallbackTracks)
-      console.log(`This player's current row tracks:`, currentRowAudioTracks.map(t => ({ id: t.articleId, title: t.title })))
-
-      // Check if this event is for this specific audio player
-      let shouldPlay = targetArticleId === articleId
-      let playReason = 'primary target'
-
-      // If primary target doesn't match, check if this player is in the fallback tracks AND is in current row
-      if (!shouldPlay && fallbackTracks.includes(articleId)) {
-        const isInCurrentRow = currentRowAudioTracks.some(t => t.articleId === articleId)
-        if (isInCurrentRow) {
-          shouldPlay = true
-          playReason = 'fallback - player exists in current row'
-          console.log(`🔄 Using fallback: AudioPlayer ${articleId} is in current row tracks, will play instead`)
-        }
-      }
-
-      console.log(`Is this player (${articleId}) going to play?`, shouldPlay, `(${playReason})`)
-
-      if (shouldPlay && audioRef.current) {
-        const audio = audioRef.current
-        console.log(`✅ AudioPlayer ${articleId} is target track (${playReason}), attempting to play`)
-
-        // Reset audio to start and play
-        audio.currentTime = 0
-        audio.play().then(() => {
-          console.log(`✅ AudioPlayer ${articleId} successfully started playing (row play - ${playReason})`)
-          setIsPlaying(true)
-        }).catch((error) => {
-          console.error(`❌ AudioPlayer ${articleId} failed to play (row play):`, error)
-          // If this audio failed to play, notify to try the next one
-          if (isAutoRowPlaying) {
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('autoRowPlayAudioEnd'))
-            }, 100)
-          }
-        })
-      } else {
-        console.log(`❌ AudioPlayer ${articleId} NOT playing because:`, {
-          shouldPlay,
-          hasAudioRef: !!audioRef.current,
-          targetArticleId,
-          thisArticleId: articleId,
-          inFallbacks: fallbackTracks.includes(articleId),
-          inCurrentRow: currentRowAudioTracks.some(t => t.articleId === articleId),
-          reason: !shouldPlay ? 'No match (primary or fallback)' : 'no audio ref'
-        })
-      }
-    }
-
-    const handleAutoRowPlayStop = () => {
-      const audio = audioRef.current
-      if (audio) {
-        console.log(`AudioPlayer ${articleId} stopping due to autoRowPlayStop`)
-        audio.pause()
-        audio.currentTime = 0
-        setIsPlaying(false)
-      }
-    }
-
-    window.addEventListener('autoPlayStart', handleAutoPlayStart)
-    window.addEventListener('autoPlayStop', handleAutoPlayStop)
-    window.addEventListener('autoRowPlayStart', handleAutoRowPlayStart as EventListener)
-    window.addEventListener('autoRowPlayStop', handleAutoRowPlayStop)
+    // Keep only the stopAllAudio event for manual controls
     window.addEventListener('stopAllAudio', handleStopAllAudio)
 
     return () => {
-      window.removeEventListener('autoPlayStart', handleAutoPlayStart)
-      window.removeEventListener('autoPlayStop', handleAutoPlayStop)
-      window.removeEventListener('autoRowPlayStart', handleAutoRowPlayStart as EventListener)
-      window.removeEventListener('autoRowPlayStop', handleAutoRowPlayStop)
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
-  }, [isCurrentTrack, articleId, isAutoPlaying, isCurrentRowTrack, isAutoRowPlaying, currentRowAudioTracks])
+  }, [articleId])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
@@ -222,8 +104,8 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   }
 
   return (
-    <div className="inline-flex">
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+    <div className="inline-flex" data-article-id={articleId}>
+      <audio ref={audioRef} src={audioUrl} preload="metadata" data-article-id={articleId} />
       <button
         onClick={togglePlayPause}
         disabled={isLoading}

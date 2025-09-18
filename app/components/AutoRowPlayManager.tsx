@@ -54,23 +54,30 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
   const [currentVerticalIndex, setCurrentVerticalIndex] = useState(0)
   const [allArticles, setAllArticles] = useState<Article[]>([])
 
-  // Fetch all articles once
-  useEffect(() => {
-    console.log('AutoRowPlayProvider: Starting to fetch all articles')
-    const fetchAllArticles = async () => {
-      try {
-        console.log('AutoRowPlayProvider: Fetching /api/articles')
-        const response = await fetch('/api/articles')
-        const articles = await response.json()
-        console.log('AutoRowPlayProvider: Received articles:', articles.length)
-        setAllArticles(articles)
-      } catch (error) {
-        console.error('Failed to fetch articles:', error)
-      }
-    }
+  // State tracking for debugging
+  console.log('AutoRowPlayProvider: allArticles:', allArticles.length, 'tracks:', currentRowAudioTracks.length)
 
-    fetchAllArticles()
-  }, [])
+  // Simplified useEffect - just fetch articles ONCE
+  useEffect(() => {
+    console.log('=== useEffect FINALLY TRIGGERED ===')
+    console.log('Fetching articles...')
+
+    fetch('/api/articles')
+      .then(response => {
+        console.log('useEffect: Fetch response status:', response.status)
+        return response.json()
+      })
+      .then(articles => {
+        console.log('useEffect: Received articles count:', articles.length)
+        console.log('useEffect: First article:', articles[0]?.title || 'No articles')
+        console.log('useEffect: About to call setAllArticles')
+        setAllArticles(articles)
+        console.log('useEffect: setAllArticles called successfully')
+      })
+      .catch(error => {
+        console.error('useEffect: Failed to fetch:', error)
+      })
+  }, []) // EMPTY DEPENDENCY ARRAY
 
   // Update current row tracks when vertical index changes
   const updateCurrentRow = useCallback((verticalIndex: number) => {
@@ -180,7 +187,7 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
     }
   }, [allArticles, currentVerticalIndex]) // Include currentVerticalIndex dependency
 
-  const toggleAutoRowPlay = () => {
+  const toggleAutoRowPlay = async () => {
     setIsAutoRowPlaying(prev => {
       const newState = !prev
       console.log('=== TOGGLE AUTO-ROW-PLAY ===')
@@ -198,137 +205,124 @@ export function AutoRowPlayProvider({ children }: AutoRowPlayProviderProps) {
           return false // Don't start if no tracks
         }
 
-        // First stop all audio to ensure clean start
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
-
-        setCurrentRowTrackIndex(0)
-
-        // If we have tracks in the current row, start with the first one
-        if (currentRowAudioTracks.length > 0) {
-          const firstTrack = currentRowAudioTracks[0]
-          console.log(`=== STARTING AUTO-ROW-PLAY ===`)
-          console.log(`First track details:`, firstTrack)
-          console.log(`All tracks in row:`, currentRowAudioTracks)
-
-          // Navigate to the first track's horizontal position in current row
-          if (firstTrack.horizontalIndex > 0) {
-            console.log(`Navigating to horizontal slide ${firstTrack.horizontalIndex}`)
-            window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
-              detail: { horizontalIndex: firstTrack.horizontalIndex }
-            }))
-
-            // Wait for navigation and then start playback with track ID
-            setTimeout(() => {
-              console.log('>>> ATTEMPTING to find available AudioPlayer for first track:', firstTrack.articleId)
-
-              // Try to find an AudioPlayer that's actually available
-              // First try the intended track
-              const targetTrack = firstTrack
-              console.log('>>> DISPATCHING autoRowPlayStart event for articleId:', targetTrack.articleId)
-              console.log('>>> Expected AudioPlayer to respond:', targetTrack.articleId)
-
-              const event = new CustomEvent('autoRowPlayStart', {
-                detail: {
-                  articleId: targetTrack.articleId,
-                  fallbackTracks: currentRowAudioTracks.map(t => t.articleId) // Provide fallback options
-                }
-              })
-              window.dispatchEvent(event)
-              console.log('>>> Event dispatched successfully with fallback options')
-            }, 500) // Give time for navigation
-          } else {
-            // Track is on main slide, start immediately with track ID
-            setTimeout(() => {
-              console.log('>>> ATTEMPTING to find available AudioPlayer for first track (main slide):', firstTrack.articleId)
-
-              // Try to find an AudioPlayer that's actually available
-              const targetTrack = firstTrack
-              console.log('>>> DISPATCHING autoRowPlayStart event for articleId:', targetTrack.articleId)
-              console.log('>>> Expected AudioPlayer to respond:', targetTrack.articleId)
-
-              const event = new CustomEvent('autoRowPlayStart', {
-                detail: {
-                  articleId: targetTrack.articleId,
-                  fallbackTracks: currentRowAudioTracks.map(t => t.articleId) // Provide fallback options
-                }
-              })
-              window.dispatchEvent(event)
-              console.log('>>> Event dispatched successfully with fallback options')
-            }, 200)
-          }
-        }
+        // Start playing the row tracks sequentially
+        playRowTracksSequentially()
       } else {
         // Stopping auto-row-play
         console.log('Stopping auto-row-play')
-        window.dispatchEvent(new CustomEvent('autoRowPlayStop'))
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+        stopAllAudio()
       }
       return newState
     })
   }
 
-  // Listen for audio end events to play next track in the row
-  useEffect(() => {
-    const handleAudioEnd = () => {
-      console.log('Row audio ended, checking for next track in row...')
-      if (isAutoRowPlaying && currentRowAudioTracks.length > 0) {
-        const nextIndex = currentRowTrackIndex + 1
-        console.log(`Current row track ${currentRowTrackIndex} ended, next index would be ${nextIndex}`)
+  const stopAllAudio = () => {
+    const audioElements = document.querySelectorAll('audio')
+    audioElements.forEach(audio => {
+      audio.pause()
+      audio.currentTime = 0
+    })
+  }
 
-        if (nextIndex < currentRowAudioTracks.length) {
-          // First stop all audio to ensure clean transition
-          window.dispatchEvent(new CustomEvent('stopAllAudio'))
+  const navigateToHorizontalSlide = async (horizontalIndex: number): Promise<void> => {
+    return new Promise(resolve => {
+      window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
+        detail: { horizontalIndex }
+      }))
+      // Wait for navigation to complete
+      setTimeout(resolve, 800)
+    })
+  }
 
-          // Update to next track index
-          setCurrentRowTrackIndex(nextIndex)
+  const findAudioPlayerByArticleId = (articleId: string): HTMLAudioElement | null => {
+    // Direct lookup using data attribute
+    const audioElement = document.querySelector(`audio[data-article-id="${articleId}"]`) as HTMLAudioElement
 
-          // Get the next track to determine if we need to navigate horizontally
-          const nextTrack = currentRowAudioTracks[nextIndex]
-          console.log(`Next track in row: ${nextTrack.title} at horizontal index ${nextTrack.horizontalIndex}`)
+    if (audioElement) {
+      console.log(`✅ Found audio element for article ${articleId}`)
+      return audioElement
+    }
 
-          // Navigate to the correct horizontal position
-          if (nextTrack.horizontalIndex > 0) {
-            window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
-              detail: { horizontalIndex: nextTrack.horizontalIndex }
-            }))
+    console.log(`❌ No audio element found for article ${articleId}`)
+    return null
+  }
 
-            // Wait for navigation to complete before starting audio
-            setTimeout(() => {
-              console.log(`Starting next row track after navigation: ${nextIndex} with articleId:`, nextTrack.articleId)
-              window.dispatchEvent(new CustomEvent('autoRowPlayStart', {
-                detail: { articleId: nextTrack.articleId }
-              }))
-            }, 500)
-          } else {
-            // Navigate back to main slide
-            window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
-              detail: { horizontalIndex: 0 }
-            }))
+  const playAudio = async (audioElement: HTMLAudioElement): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const handleEnded = () => {
+        audioElement.removeEventListener('ended', handleEnded)
+        audioElement.removeEventListener('error', handleError)
+        resolve()
+      }
 
-            setTimeout(() => {
-              console.log(`Starting next row track on main slide: ${nextIndex} with articleId:`, nextTrack.articleId)
-              window.dispatchEvent(new CustomEvent('autoRowPlayStart', {
-                detail: { articleId: nextTrack.articleId }
-              }))
-            }, 500)
-          }
-        } else {
-          // End of row playlist - stop auto-row-play
-          console.log('End of row playlist, stopping auto-row-play')
-          setIsAutoRowPlaying(false)
-          setCurrentRowTrackIndex(0)
-          window.dispatchEvent(new CustomEvent('autoRowPlayStop'))
-          window.dispatchEvent(new CustomEvent('stopAllAudio'))
+      const handleError = (error: Event) => {
+        audioElement.removeEventListener('ended', handleEnded)
+        audioElement.removeEventListener('error', handleError)
+        console.error('Audio playback error:', error)
+        reject(error)
+      }
+
+      audioElement.addEventListener('ended', handleEnded)
+      audioElement.addEventListener('error', handleError)
+
+      audioElement.currentTime = 0
+      audioElement.play().catch(reject)
+    })
+  }
+
+  const playRowTracksSequentially = async () => {
+    console.log('=== STARTING SEQUENTIAL ROW PLAYBACK ===')
+
+    for (let i = 0; i < currentRowAudioTracks.length; i++) {
+      // Check if auto-row-play is still active using state instead of DOM
+      if (!isAutoRowPlaying) {
+        console.log('Auto-row-play state is false, breaking out of loop')
+        break
+      }
+
+      const track = currentRowAudioTracks[i]
+      console.log(`Playing track ${i + 1}/${currentRowAudioTracks.length}:`, track)
+
+      try {
+        // Stop all audio first
+        stopAllAudio()
+
+        // Navigate to the correct horizontal slide if needed
+        if (track.horizontalIndex > 0) {
+          console.log(`Navigating to horizontal slide ${track.horizontalIndex}`)
+          await navigateToHorizontalSlide(track.horizontalIndex)
+        } else if (i > 0) {
+          // Navigate back to main slide if we're not on the first track
+          console.log('Navigating back to main slide')
+          await navigateToHorizontalSlide(0)
         }
+
+        // Find the audio player for this track
+        const audioElement = findAudioPlayerByArticleId(track.articleId)
+
+        if (audioElement) {
+          console.log(`✅ Found audio element for ${track.articleId}, starting playback`)
+          setCurrentRowTrackIndex(i)
+          await playAudio(audioElement)
+          console.log(`✅ Completed playing ${track.title}`)
+        } else {
+          console.error(`❌ Could not find audio element for ${track.articleId}`)
+          // Continue to next track instead of stopping
+        }
+
+      } catch (error) {
+        console.error(`Error playing track ${track.title}:`, error)
+        // Continue to next track instead of stopping
       }
     }
 
-    window.addEventListener('autoRowPlayAudioEnd', handleAudioEnd as EventListener)
+    // All tracks completed or stopped
+    console.log('=== ROW PLAYBACK COMPLETED ===')
+    setIsAutoRowPlaying(false)
+    setCurrentRowTrackIndex(0)
+  }
 
-    return () => {
-      window.removeEventListener('autoRowPlayAudioEnd', handleAudioEnd as EventListener)
-    }
-  }, [isAutoRowPlaying, currentRowTrackIndex, currentRowAudioTracks])
+  // No longer need event-based audio end handling - using direct sequential control
 
   const value = {
     isAutoRowPlaying,
@@ -351,11 +345,7 @@ export default function AutoRowPlayIcon() {
   const pathname = usePathname()
 
   // Debug logging for button visibility
-  console.log('=== AUTO-ROW-PLAY ICON RENDER ===')
-  console.log('Pathname:', pathname)
-  console.log('Is admin page:', pathname?.startsWith('/admin'))
-  console.log('Current row audio tracks count:', currentRowAudioTracks.length)
-  console.log('Current row audio tracks:', currentRowAudioTracks)
+  console.log('AutoRowPlayIcon:', currentRowAudioTracks.length, 'tracks in row')
 
   // Don't show on admin pages
   const isAdminPage = pathname?.startsWith('/admin')
@@ -373,7 +363,10 @@ export default function AutoRowPlayIcon() {
   console.log('AutoRowPlayIcon: Showing button with', currentRowAudioTracks.length, 'tracks')
 
   return (
-    <div className="fixed top-6 left-36 z-50">
+    <div
+      className="fixed top-6 left-36 z-50"
+      data-auto-row-playing={isAutoRowPlaying ? 'true' : 'false'}
+    >
       <button
         onClick={toggleAutoRowPlay}
         className="p-2 transition-opacity hover:opacity-70"
