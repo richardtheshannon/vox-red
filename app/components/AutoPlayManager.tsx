@@ -7,6 +7,8 @@ interface AudioTrack {
   url: string
   title: string
   articleId: string
+  verticalIndex: number  // Which vertical slide (main article)
+  horizontalIndex: number // Which horizontal slide (0 = main, 1+ = sub-articles)
 }
 
 interface AutoPlayContextType {
@@ -58,26 +60,30 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
             title: string
             audioUrl?: string | null
           }[]
-        }) => {
+        }, verticalIndex: number) => {
           // Add main article if it has audio
           if (article.audioUrl) {
-            console.log('Adding main article to tracks:', article.id, article.title)
+            console.log('Adding main article to tracks:', article.id, article.title, 'at position', verticalIndex, 0)
             tracks.push({
               url: article.audioUrl,
               title: article.title,
-              articleId: article.id
+              articleId: article.id,
+              verticalIndex,
+              horizontalIndex: 0
             })
           }
 
           // Add sub-articles in order (left to right)
           if (article.subArticles) {
-            article.subArticles.forEach((subArticle) => {
+            article.subArticles.forEach((subArticle, subIndex) => {
               if (subArticle.audioUrl) {
-                console.log('Adding sub-article to tracks:', subArticle.id, subArticle.title)
+                console.log('Adding sub-article to tracks:', subArticle.id, subArticle.title, 'at position', verticalIndex, subIndex + 1)
                 tracks.push({
                   url: subArticle.audioUrl,
                   title: subArticle.title,
-                  articleId: subArticle.id
+                  articleId: subArticle.id,
+                  verticalIndex,
+                  horizontalIndex: subIndex + 1
                 })
               }
             })
@@ -106,10 +112,26 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
         window.dispatchEvent(new CustomEvent('stopAllAudio'))
 
         setCurrentTrackIndex(0)
-        setTimeout(() => {
-          console.log('Dispatching autoPlayStart event for track 0')
-          window.dispatchEvent(new CustomEvent('autoPlayStart'))
-        }, 200) // Give time for audio to stop
+
+        // If we have tracks, navigate to the first one if needed
+        if (audioTracks.length > 0) {
+          const firstTrack = audioTracks[0]
+          console.log(`First track is at: vertical=${firstTrack.verticalIndex}, horizontal=${firstTrack.horizontalIndex}`)
+
+          // Navigate to the first track's slide
+          window.dispatchEvent(new CustomEvent('autoPlayNavigate', {
+            detail: {
+              verticalIndex: firstTrack.verticalIndex,
+              horizontalIndex: firstTrack.horizontalIndex
+            }
+          }))
+
+          // Wait for navigation and then start playback
+          setTimeout(() => {
+            console.log('Dispatching autoPlayStart event for track 0')
+            window.dispatchEvent(new CustomEvent('autoPlayStart'))
+          }, 800) // Give time for navigation
+        }
       } else {
         // Stopping auto-play
         console.log('Stopping auto-play')
@@ -135,11 +157,37 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
           // Update to next track index
           setCurrentTrackIndex(nextIndex)
 
-          // Wait for audio to stop, then start next track
-          setTimeout(() => {
-            console.log(`Starting next track: ${nextIndex}`)
-            window.dispatchEvent(new CustomEvent('autoPlayStart'))
-          }, 300) // Give enough time for audio cleanup
+          // Get the next track to determine if we need to navigate
+          const nextTrack = audioTracks[nextIndex]
+          const currentTrack = audioTracks[currentTrackIndex]
+
+          // Check if we need to navigate to a different slide
+          if (currentTrack && nextTrack &&
+              (nextTrack.verticalIndex !== currentTrack.verticalIndex ||
+               nextTrack.horizontalIndex !== currentTrack.horizontalIndex)) {
+
+            console.log(`Navigating to slide: vertical=${nextTrack.verticalIndex}, horizontal=${nextTrack.horizontalIndex}`)
+
+            // Dispatch navigation event to move to the correct slide
+            window.dispatchEvent(new CustomEvent('autoPlayNavigate', {
+              detail: {
+                verticalIndex: nextTrack.verticalIndex,
+                horizontalIndex: nextTrack.horizontalIndex
+              }
+            }))
+
+            // Wait longer for navigation to complete before starting audio
+            setTimeout(() => {
+              console.log(`Starting next track after navigation: ${nextIndex}`)
+              window.dispatchEvent(new CustomEvent('autoPlayStart'))
+            }, 800) // Give time for slide navigation
+          } else {
+            // Same slide, just wait for audio cleanup
+            setTimeout(() => {
+              console.log(`Starting next track on same slide: ${nextIndex}`)
+              window.dispatchEvent(new CustomEvent('autoPlayStart'))
+            }, 300) // Give enough time for audio cleanup
+          }
         } else {
           // End of playlist - stop auto-play
           console.log('End of playlist, stopping auto-play')
@@ -156,7 +204,7 @@ export function AutoPlayProvider({ children }: AutoPlayProviderProps) {
     return () => {
       window.removeEventListener('autoPlayAudioEnd', handleAudioEnd as EventListener)
     }
-  }, [isAutoPlaying, currentTrackIndex, audioTracks.length])
+  }, [isAutoPlaying, currentTrackIndex, audioTracks])
 
   const value = {
     isAutoPlaying,

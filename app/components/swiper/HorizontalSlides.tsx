@@ -57,7 +57,23 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [mainArticle, subArticles])
 
-  // Simplified: Auto-play now only handles MP3 playback, not slide navigation
+  // Listen for horizontal navigation event from auto-play
+  useEffect(() => {
+    const handleNavigateToHorizontalSlide = (event: CustomEvent) => {
+      const { horizontalIndex } = event.detail
+      console.log(`HorizontalSlides: Navigating to horizontal slide ${horizontalIndex}`)
+
+      if (swiperRef.current) {
+        swiperRef.current.slideTo(horizontalIndex)
+      }
+    }
+
+    window.addEventListener('navigateToHorizontalSlide', handleNavigateToHorizontalSlide as EventListener)
+
+    return () => {
+      window.removeEventListener('navigateToHorizontalSlide', handleNavigateToHorizontalSlide as EventListener)
+    }
+  }, [])
 
   const handleSlideComplete = async (articleId: string) => {
     try {

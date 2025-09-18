@@ -51,7 +51,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     }
   }, [refreshTrigger])
 
-  // Listen for home navigation event
+  // Listen for navigation events
   useEffect(() => {
     const handleNavigateToFirst = () => {
       if (swiperRef.current) {
@@ -59,10 +59,29 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       }
     }
 
+    const handleAutoPlayNavigate = (event: CustomEvent) => {
+      const { verticalIndex, horizontalIndex } = event.detail
+      console.log(`ArticlesSwiper: Navigating to vertical slide ${verticalIndex}`)
+
+      if (swiperRef.current) {
+        // Navigate to the vertical slide
+        swiperRef.current.slideTo(verticalIndex)
+
+        // After vertical navigation, dispatch event for horizontal navigation
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
+            detail: { horizontalIndex }
+          }))
+        }, 300)
+      }
+    }
+
     window.addEventListener('navigateToFirstSlide', handleNavigateToFirst)
+    window.addEventListener('autoPlayNavigate', handleAutoPlayNavigate as EventListener)
 
     return () => {
       window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
+      window.removeEventListener('autoPlayNavigate', handleAutoPlayNavigate as EventListener)
     }
   }, [])
 
