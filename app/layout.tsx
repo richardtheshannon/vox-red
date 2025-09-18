@@ -5,6 +5,8 @@ import SessionProvider from './components/providers/SessionProvider';
 import ConditionalThemeToggle from './components/ConditionalThemeToggle';
 import AdminSettingsIcon from './components/AdminSettingsIcon';
 import HomeIcon from './components/HomeIcon';
+import { AutoPlayProvider } from './components/AutoPlayManager';
+import AutoPlayIcon from './components/AutoPlayManager';
 
 const unicaOne = Unica_One({
   weight: '400',
@@ -46,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
@@ -57,10 +59,13 @@ export default function RootLayout({
         className={`${unicaOne.variable} ${roboto.variable} antialiased`}
       >
         <SessionProvider>
-          <ConditionalThemeToggle />
-          <AdminSettingsIcon />
-          <HomeIcon />
-          {children}
+          <AutoPlayProvider>
+            <ConditionalThemeToggle />
+            <AdminSettingsIcon />
+            <HomeIcon />
+            <AutoPlayIcon />
+            {children}
+          </AutoPlayProvider>
         </SessionProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
 
@@ -17,13 +17,26 @@ interface ArticleSlideProps {
     parentId?: string | null
   }
   onComplete?: (articleId: string) => Promise<void>
+  isAutoPlaying?: boolean
 }
 
-export default function ArticleSlide({ article, onComplete }: ArticleSlideProps) {
+export default function ArticleSlide({ article, onComplete, isAutoPlaying = false }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
+
+  // Handle auto-play for slides without audio
+  useEffect(() => {
+    if (isAutoPlaying && !article.audioUrl) {
+      // If auto-playing and no audio, automatically move to next slide after 3 seconds
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isAutoPlaying, article.audioUrl])
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {
@@ -111,7 +124,7 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
             <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
               <span>{article.title}</span>
               {article.audioUrl && (
-                <AudioPlayer audioUrl={article.audioUrl} title={article.title} />
+                <AudioPlayer audioUrl={article.audioUrl} title={article.title} autoPlay={isAutoPlaying} />
               )}
             </h1>
 

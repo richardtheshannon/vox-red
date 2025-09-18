@@ -7,6 +7,7 @@ import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import HorizontalSlides from './HorizontalSlides'
 import { useRealtime } from '@/app/hooks/useRealtime'
+import { useAutoPlay } from '../AutoPlayManager'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -31,6 +32,7 @@ interface ArticlesSwiperProps {
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
   const { refreshTrigger } = useRealtime()
+  const { isAutoPlaying, currentSlideIndex, setCurrentPosition } = useAutoPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -65,6 +67,56 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
     }
   }, [])
+
+  // Auto-play navigation event listeners
+  useEffect(() => {
+    const handleAutoPlayNext = (event: CustomEvent) => {
+      const { currentSlideIndex: slideIndex, currentSubSlideIndex: subSlideIndex } = event.detail
+
+      // Check if current slide has sub-articles
+      const currentArticle = articles[slideIndex]
+      if (currentArticle && currentArticle.subArticles && currentArticle.subArticles.length > 0) {
+        // Let HorizontalSlides handle the navigation within sub-articles
+        window.dispatchEvent(new CustomEvent('autoPlayNextHorizontal', {
+          detail: { slideIndex, subSlideIndex }
+        }))
+      } else {
+        // Move to next main slide
+        const nextSlideIndex = slideIndex + 1
+        if (nextSlideIndex < articles.length) {
+          if (swiperRef.current) {
+            swiperRef.current.slideTo(nextSlideIndex)
+            setCurrentPosition(nextSlideIndex, 0)
+            window.dispatchEvent(new CustomEvent('autoPlaySlideChange', {
+              detail: { slideIndex: nextSlideIndex, subSlideIndex: 0 }
+            }))
+          }
+        } else {
+          // End of slides - reset auto-play
+          window.dispatchEvent(new CustomEvent('autoPlayReset'))
+          if (swiperRef.current) {
+            swiperRef.current.slideTo(0)
+            setCurrentPosition(0, 0)
+          }
+        }
+      }
+    }
+
+    const handleAutoPlayReset = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slideTo(0)
+        setCurrentPosition(0, 0)
+      }
+    }
+
+    window.addEventListener('autoPlayNext', handleAutoPlayNext as EventListener)
+    window.addEventListener('autoPlayReset', handleAutoPlayReset)
+
+    return () => {
+      window.removeEventListener('autoPlayNext', handleAutoPlayNext as EventListener)
+      window.removeEventListener('autoPlayReset', handleAutoPlayReset)
+    }
+  }, [articles, setCurrentPosition])
 
   if (articles.length === 0) {
     return (
@@ -102,15 +154,20 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           '--swiper-pagination-bullet-inactive-opacity': '0.5',
         } as React.CSSProperties}
       >
-        {articles.map((article) => (
+        {articles.map((article, index) => (
           <SwiperSlide key={article.id} className="bg-gray-50 dark:bg-[#141414]">
             {article.subArticles && article.subArticles.length > 0 ? (
               <HorizontalSlides
                 mainArticle={article}
                 subArticles={article.subArticles}
+                slideIndex={index}
+                isAutoPlaying={isAutoPlaying}
               />
             ) : (
-              <ArticleSlide article={article} />
+              <ArticleSlide
+                article={article}
+                isAutoPlaying={isAutoPlaying && currentSlideIndex === index}
+              />
             )}
           </SwiperSlide>
         ))}

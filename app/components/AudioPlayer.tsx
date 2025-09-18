@@ -5,9 +5,10 @@ import { useState, useRef, useEffect } from 'react'
 interface AudioPlayerProps {
   audioUrl: string
   title?: string
+  autoPlay?: boolean
 }
 
-export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -22,6 +23,8 @@ export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
 
     const handleEnded = () => {
       setIsPlaying(false)
+      // Dispatch auto-play audio end event
+      window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
     }
 
     const handleLoadStart = () => {
@@ -38,6 +41,50 @@ export default function AudioPlayer({ audioUrl }: AudioPlayerProps) {
       audio.removeEventListener('loadstart', handleLoadStart)
     }
   }, [audioUrl])
+
+  // Auto-play event listeners
+  useEffect(() => {
+    const handleAutoPlayStart = () => {
+      if (autoPlay) {
+        const audio = audioRef.current
+        if (audio && !isPlaying) {
+          audio.play()
+          setIsPlaying(true)
+        }
+      }
+    }
+
+    const handleAutoPlayStop = () => {
+      const audio = audioRef.current
+      if (audio && isPlaying) {
+        audio.pause()
+        setIsPlaying(false)
+      }
+    }
+
+    window.addEventListener('autoPlayStart', handleAutoPlayStart)
+    window.addEventListener('autoPlayStop', handleAutoPlayStop)
+
+    return () => {
+      window.removeEventListener('autoPlayStart', handleAutoPlayStart)
+      window.removeEventListener('autoPlayStop', handleAutoPlayStop)
+    }
+  }, [autoPlay, isPlaying])
+
+  // Auto-start audio when autoPlay is enabled and component becomes active
+  useEffect(() => {
+    if (autoPlay) {
+      const audio = audioRef.current
+      if (audio && !isPlaying) {
+        const timer = setTimeout(() => {
+          audio.play()
+          setIsPlaying(true)
+        }, 500) // Small delay to ensure slide transition is complete
+
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [autoPlay, isPlaying])
 
   const togglePlayPause = () => {
     const audio = audioRef.current

@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
+import { useAutoPlay } from '../AutoPlayManager'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -27,11 +28,15 @@ interface Article {
 interface HorizontalSlidesProps {
   mainArticle: Article
   subArticles: Article[]
+  slideIndex: number
+  isAutoPlaying: boolean
 }
 
-export default function HorizontalSlides({ mainArticle, subArticles }: HorizontalSlidesProps) {
+export default function HorizontalSlides({ mainArticle, subArticles, slideIndex, isAutoPlaying }: HorizontalSlidesProps) {
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
+  const [currentHorizontalIndex, setCurrentHorizontalIndex] = useState(0)
+  const { setCurrentPosition } = useAutoPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -55,6 +60,40 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       setVisibleSlides([mainArticle, ...subArticles])
     }
   }, [mainArticle, subArticles])
+
+  // Auto-play horizontal navigation
+  useEffect(() => {
+    const handleAutoPlayNextHorizontal = (event: CustomEvent) => {
+      const { slideIndex: eventSlideIndex, subSlideIndex } = event.detail
+
+      // Only handle if this is the current slide
+      if (eventSlideIndex !== slideIndex) return
+
+      const nextIndex = subSlideIndex + 1
+      if (nextIndex < visibleSlides.length) {
+        // Move to next sub-slide
+        if (swiperRef.current) {
+          swiperRef.current.slideTo(nextIndex)
+          setCurrentHorizontalIndex(nextIndex)
+          setCurrentPosition(slideIndex, nextIndex)
+          window.dispatchEvent(new CustomEvent('autoPlaySlideChange', {
+            detail: { slideIndex, subSlideIndex: nextIndex }
+          }))
+        }
+      } else {
+        // End of sub-slides, move to next main slide
+        window.dispatchEvent(new CustomEvent('autoPlayNext', {
+          detail: { currentSlideIndex: slideIndex, currentSubSlideIndex: 0 }
+        }))
+      }
+    }
+
+    window.addEventListener('autoPlayNextHorizontal', handleAutoPlayNextHorizontal as EventListener)
+
+    return () => {
+      window.removeEventListener('autoPlayNextHorizontal', handleAutoPlayNextHorizontal as EventListener)
+    }
+  }, [slideIndex, visibleSlides.length, setCurrentPosition])
 
   const handleSlideComplete = async (articleId: string) => {
     try {
@@ -124,7 +163,13 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
   if (visibleSlides.length === 1) {
     // If only one slide, show it without swiper
-    return <ArticleSlide article={visibleSlides[0]} onComplete={handleSlideComplete} />
+    return (
+      <ArticleSlide
+        article={visibleSlides[0]}
+        onComplete={handleSlideComplete}
+        isAutoPlaying={isAutoPlaying && currentHorizontalIndex === 0}
+      />
+    )
   }
 
   if (visibleSlides.length === 0) {
@@ -164,9 +209,13 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         '--swiper-pagination-bottom': '40px',
       } as React.CSSProperties}
     >
-      {visibleSlides.map((article) => (
+      {visibleSlides.map((article, index) => (
         <SwiperSlide key={article.id}>
-          <ArticleSlide article={article} onComplete={handleSlideComplete} />
+          <ArticleSlide
+            article={article}
+            onComplete={handleSlideComplete}
+            isAutoPlaying={isAutoPlaying && currentHorizontalIndex === index}
+          />
         </SwiperSlide>
       ))}
     </Swiper>
