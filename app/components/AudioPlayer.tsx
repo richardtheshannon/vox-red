@@ -96,14 +96,6 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
 
         return () => clearTimeout(timer)
       }
-    } else {
-      // Stop audio if auto-play is disabled or this slide is not active
-      const audio = audioRef.current
-      if (audio && isPlaying) {
-        audio.pause()
-        audio.currentTime = 0
-        setIsPlaying(false)
-      }
     }
   }, [autoPlay, isPlaying])
 

@@ -28,16 +28,30 @@ export default function ArticleSlide({ article, onComplete, isAutoPlaying = fals
 
   // Handle auto-play timing based on audio presence
   useEffect(() => {
-    if (isAutoPlaying && !article.audioUrl) {
-      // No audio: wait 15 seconds then move to next slide
-      const timer = setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
-      }, 15000)
+    if (isAutoPlaying) {
+      if (!article.audioUrl) {
+        // No audio: immediately skip to next slide
+        // Stop any playing audio first
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
 
-      return () => clearTimeout(timer)
+        const timer = setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
+        }, 100) // Minimal delay to ensure slide renders before skipping
+
+        return () => clearTimeout(timer)
+      } else {
+        // Has audio: stop any previous audio before playing new one
+        window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
+        // Small delay to let audio stop before starting new one
+        const startTimer = setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('autoPlayStart'))
+        }, 200)
+
+        return () => clearTimeout(startTimer)
+      }
     }
-    // If there's audio, let the AudioPlayer handle timing via audio completion
-  }, [isAutoPlaying, article.audioUrl])
+  }, [isAutoPlaying, article.audioUrl, article.id]) // Added article.id to re-trigger when slide changes
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {
