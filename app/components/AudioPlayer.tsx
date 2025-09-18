@@ -1,17 +1,35 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useAutoPlay } from './AutoPlayManager'
 
 interface AudioPlayerProps {
   audioUrl: string
   title?: string
-  autoPlay?: boolean
+  articleId: string
 }
 
-export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const { isAutoPlaying, currentTrackIndex, audioTracks } = useAutoPlay()
+
+  // Check if this is the current track in auto-play
+  const currentTrack = audioTracks[currentTrackIndex]
+  const isCurrentTrack = isAutoPlaying && currentTrack?.articleId === articleId
+
+  // Debug logging
+  useEffect(() => {
+    console.log(`AudioPlayer ${articleId}:`, {
+      isAutoPlaying,
+      currentTrackIndex,
+      totalTracks: audioTracks.length,
+      currentTrackId: currentTrack?.articleId,
+      isCurrentTrack,
+      audioUrl
+    })
+  }, [isAutoPlaying, currentTrackIndex, audioTracks.length, currentTrack?.articleId, isCurrentTrack, articleId, audioUrl])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -24,7 +42,7 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
     const handleEnded = () => {
       setIsPlaying(false)
       // Dispatch event when audio completes during auto-play
-      if (autoPlay) {
+      if (isCurrentTrack) {
         window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
       }
     }
@@ -42,16 +60,22 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('loadstart', handleLoadStart)
     }
-  }, [audioUrl, autoPlay])
+  }, [audioUrl, isCurrentTrack])
 
   // Auto-play event listeners
   useEffect(() => {
     const handleAutoPlayStart = () => {
-      if (autoPlay) {
+      console.log(`AudioPlayer ${articleId} received autoPlayStart event, isCurrentTrack:`, isCurrentTrack)
+      if (isCurrentTrack) {
         const audio = audioRef.current
         if (audio && !isPlaying) {
-          audio.play()
-          setIsPlaying(true)
+          console.log(`AudioPlayer ${articleId} attempting to play audio`)
+          audio.play().then(() => {
+            console.log(`AudioPlayer ${articleId} started playing`)
+            setIsPlaying(true)
+          }).catch((error) => {
+            console.error(`AudioPlayer ${articleId} failed to play:`, error)
+          })
         }
       }
     }
@@ -82,33 +106,25 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
       window.removeEventListener('autoPlayStop', handleAutoPlayStop)
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
     }
-  }, [autoPlay, isPlaying])
-
-  // Auto-start audio when autoPlay is enabled and component becomes active
-  useEffect(() => {
-    if (autoPlay) {
-      const audio = audioRef.current
-      if (audio && !isPlaying) {
-        const timer = setTimeout(() => {
-          audio.play()
-          setIsPlaying(true)
-        }, 500) // Small delay to ensure slide transition is complete
-
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [autoPlay, isPlaying])
+  }, [isCurrentTrack, isPlaying])
 
   const togglePlayPause = () => {
     const audio = audioRef.current
     if (!audio) return
 
-    if (isPlaying) {
-      audio.pause()
-    } else {
-      audio.play()
-    }
-    setIsPlaying(!isPlaying)
+    // Stop all other audio first
+    window.dispatchEvent(new CustomEvent('stopAllAudio'))
+
+    setTimeout(() => {
+      if (isPlaying) {
+        audio.pause()
+        setIsPlaying(false)
+      } else {
+        audio.play().then(() => {
+          setIsPlaying(true)
+        }).catch(console.error)
+      }
+    }, 100)
   }
 
   return (
@@ -117,7 +133,11 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
       <button
         onClick={togglePlayPause}
         disabled={isLoading}
-        className="w-8 h-8 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50 rounded-full flex items-center justify-center transition-colors"
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+          isCurrentTrack
+            ? 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700'
+            : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600'
+        } disabled:opacity-50`}
         aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
       >
         {isLoading ? (

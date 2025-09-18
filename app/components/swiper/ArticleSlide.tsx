@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
 
@@ -17,41 +17,15 @@ interface ArticleSlideProps {
     parentId?: string | null
   }
   onComplete?: (articleId: string) => Promise<void>
-  isAutoPlaying?: boolean
 }
 
-export default function ArticleSlide({ article, onComplete, isAutoPlaying = false }: ArticleSlideProps) {
+export default function ArticleSlide({ article, onComplete }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
 
-  // Handle auto-play timing based on audio presence
-  useEffect(() => {
-    if (isAutoPlaying) {
-      if (!article.audioUrl) {
-        // No audio: immediately skip to next slide
-        // Stop any playing audio first
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
-
-        const timer = setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('autoPlayAudioEnd'))
-        }, 100) // Minimal delay to ensure slide renders before skipping
-
-        return () => clearTimeout(timer)
-      } else {
-        // Has audio: stop any previous audio before playing new one
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
-
-        // Small delay to let audio stop before starting new one
-        const startTimer = setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('autoPlayStart'))
-        }, 200)
-
-        return () => clearTimeout(startTimer)
-      }
-    }
-  }, [isAutoPlaying, article.audioUrl, article.id]) // Added article.id to re-trigger when slide changes
+  // Auto-play is now handled by the simplified AudioPlayer system
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {
@@ -139,7 +113,7 @@ export default function ArticleSlide({ article, onComplete, isAutoPlaying = fals
             <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
               <span>{article.title}</span>
               {article.audioUrl && (
-                <AudioPlayer audioUrl={article.audioUrl} title={article.title} autoPlay={isAutoPlaying} />
+                <AudioPlayer audioUrl={article.audioUrl} title={article.title} articleId={article.id} />
               )}
             </h1>
 

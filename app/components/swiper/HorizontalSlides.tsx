@@ -5,7 +5,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
-import { useAutoPlay } from '../AutoPlayManager'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -28,16 +27,12 @@ interface Article {
 interface HorizontalSlidesProps {
   mainArticle: Article
   subArticles: Article[]
-  slideIndex: number
-  isAutoPlaying: boolean
+  slideIndex?: number // Made optional since it's not used
 }
 
-export default function HorizontalSlides({ mainArticle, subArticles, slideIndex, isAutoPlaying }: HorizontalSlidesProps) {
+export default function HorizontalSlides({ mainArticle, subArticles }: HorizontalSlidesProps) {
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
-  const [currentHorizontalIndex, setCurrentHorizontalIndex] = useState(0)
-  const [isSwiperReady, setIsSwiperReady] = useState(false)
-  const { setCurrentPosition } = useAutoPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -62,45 +57,7 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
     }
   }, [mainArticle, subArticles])
 
-  // Auto-play horizontal navigation
-  useEffect(() => {
-    const handleAutoPlayNextHorizontal = (event: CustomEvent) => {
-      const { slideIndex: eventSlideIndex, subSlideIndex } = event.detail
-
-      // Only handle if this is the current slide
-      if (eventSlideIndex !== slideIndex) return
-
-      const nextIndex = subSlideIndex + 1
-      if (nextIndex < visibleSlides.length) {
-        // Stop all audio before moving to next sub-slide
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
-
-        // Move to next sub-slide
-        if (swiperRef.current) {
-          swiperRef.current.slideTo(nextIndex)
-          setCurrentHorizontalIndex(nextIndex)
-          setCurrentPosition(slideIndex, nextIndex)
-          window.dispatchEvent(new CustomEvent('autoPlaySlideChange', {
-            detail: { slideIndex, subSlideIndex: nextIndex }
-          }))
-        }
-      } else {
-        // Stop all audio before moving to next main slide
-        window.dispatchEvent(new CustomEvent('stopAllAudio'))
-
-        // End of sub-slides, move to next main slide
-        window.dispatchEvent(new CustomEvent('autoPlayNextMainSlide', {
-          detail: { currentSlideIndex: slideIndex }
-        }))
-      }
-    }
-
-    window.addEventListener('autoPlayNextHorizontal', handleAutoPlayNextHorizontal as EventListener)
-
-    return () => {
-      window.removeEventListener('autoPlayNextHorizontal', handleAutoPlayNextHorizontal as EventListener)
-    }
-  }, [slideIndex, visibleSlides.length, setCurrentPosition])
+  // Simplified: Auto-play now only handles MP3 playback, not slide navigation
 
   const handleSlideComplete = async (articleId: string) => {
     try {
@@ -174,7 +131,6 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
       <ArticleSlide
         article={visibleSlides[0]}
         onComplete={handleSlideComplete}
-        isAutoPlaying={isAutoPlaying}
       />
     )
   }
@@ -187,13 +143,10 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
     <Swiper
       onSwiper={(swiper) => {
         swiperRef.current = swiper
-        setCurrentHorizontalIndex(0) // Initialize to first slide
-        setIsSwiperReady(true)
+        // Swiper initialized
       }}
-      onSlideChange={(swiper) => {
-        setCurrentHorizontalIndex(swiper.activeIndex)
-        // Update position for auto-play tracking
-        setCurrentPosition(slideIndex, swiper.activeIndex)
+      onSlideChange={() => {
+        // Slide change handling removed for simplified auto-play
       }}
       modules={[Pagination, Keyboard, Mousewheel]}
       direction="horizontal"
@@ -225,12 +178,11 @@ export default function HorizontalSlides({ mainArticle, subArticles, slideIndex,
         '--swiper-pagination-bottom': '40px',
       } as React.CSSProperties}
     >
-      {visibleSlides.map((article, index) => (
+      {visibleSlides.map((article) => (
         <SwiperSlide key={article.id}>
           <ArticleSlide
             article={article}
             onComplete={handleSlideComplete}
-            isAutoPlaying={isAutoPlaying && isSwiperReady && currentHorizontalIndex === index}
           />
         </SwiperSlide>
       ))}
