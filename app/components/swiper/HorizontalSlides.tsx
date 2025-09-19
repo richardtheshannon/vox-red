@@ -45,17 +45,19 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       tracks.push({
         url: mainArticle.audioUrl,
         title: mainArticle.title,
-        articleId: mainArticle.id
+        articleId: mainArticle.id,
+        slideIndex: 0
       })
     }
 
     // Add sub-articles with audio in order
-    subArticles.forEach(subArticle => {
+    subArticles.forEach((subArticle, index) => {
       if (subArticle.audioUrl) {
         tracks.push({
           url: subArticle.audioUrl,
           title: subArticle.title,
-          articleId: subArticle.id
+          articleId: subArticle.id,
+          slideIndex: index + 1 // +1 because main article is at index 0
         })
       }
     })

@@ -33,7 +33,8 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
       return [{
         url: article.audioUrl,
         title: article.title,
-        articleId: article.id
+        articleId: article.id,
+        slideIndex: 0 // Single slide is always at index 0
       }]
     }
     return []
