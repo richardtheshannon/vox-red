@@ -176,7 +176,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
             mediaId={mediaId}
             onChange={handleMediaChange}
             label="Audio File (optional)"
-            help="Select an uploaded MP3 file or upload a new one to add an audio player to this article"
+            help="Select an uploaded MP3 file, upload a new one, or paste a URL to add an audio player to this article"
           />
 
           <div>

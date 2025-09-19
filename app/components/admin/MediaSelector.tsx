@@ -26,6 +26,8 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null)
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showUrlInput, setShowUrlInput] = useState(false)
+  const [urlInput, setUrlInput] = useState('')
 
   useEffect(() => {
     if (mediaId) {
@@ -116,6 +118,21 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
     fetchMedia()
   }
 
+  const handleUrlSubmit = () => {
+    if (urlInput.trim()) {
+      setSelectedMedia(null)
+      onChange(urlInput.trim(), null)
+      setPreviewUrl(urlInput.trim())
+      setShowUrlInput(false)
+      setUrlInput('')
+    }
+  }
+
+  const handleUrlCancel = () => {
+    setShowUrlInput(false)
+    setUrlInput('')
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -179,6 +196,13 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
             </label>
             <button
               type="button"
+              onClick={() => setShowUrlInput(true)}
+              className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+            >
+              Paste URL
+            </button>
+            <button
+              type="button"
               onClick={handleRemove}
               className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
@@ -210,6 +234,13 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
                 className="hidden"
               />
             </label>
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(true)}
+              className="px-4 py-2 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+            >
+              Paste URL
+            </button>
           </div>
         </div>
       )}
@@ -284,6 +315,58 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
                   className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* URL Input Modal */}
+      {showUrlInput && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleUrlCancel}></div>
+
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Paste MP3 URL
+                </h3>
+              </div>
+
+              <div className="p-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  MP3 File URL
+                </label>
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://example.com/audio.mp3"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  autoFocus
+                />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Enter a direct link to an MP3 file
+                </p>
+              </div>
+
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleUrlCancel}
+                  className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUrlSubmit}
+                  disabled={!urlInput.trim()}
+                  className="px-4 py-2 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add URL
                 </button>
               </div>
             </div>
