@@ -67,15 +67,10 @@ export function isAllowedDay(publishDays?: string | null): boolean {
 }
 
 /**
- * Determines if a standard article should be visible based on time and day settings
- * Project articles are not affected by these rules
+ * Determines if an article should be visible based on time and day settings
+ * Both standard and project articles can use time-based publishing
  */
 export function shouldShowArticle(article: Article): boolean {
-  // Project articles are handled by existing logic, not affected by scheduling
-  if (article.isProject) {
-    return article.published
-  }
-
   // Must be published first
   if (!article.published) {
     return false

@@ -227,13 +227,12 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
           </div>
         </div>
 
-        {/* Publishing Settings Column - Only for standard articles */}
-        {!article?.isProject && (
-          <div className="lg:col-span-1">
-            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                Publishing Settings
-              </h3>
+        {/* Publishing Settings Column - Available for all articles */}
+        <div className="lg:col-span-1">
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg space-y-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Publishing Settings
+            </h3>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -295,7 +294,6 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
               </div>
             </div>
           </div>
-        )}
       </div>
 
       {error && (

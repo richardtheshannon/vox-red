@@ -57,20 +57,13 @@ export default function ClientArticlesSwiper({ initialArticles }: ClientArticles
       // Filter sub-articles first
       if (article.subArticles) {
         const filteredSubArticles = article.subArticles.filter(subArticle => {
-          if (subArticle.isProject) {
-            return subArticle.published
-          }
+          // Apply time/day filtering to all articles (both standard and project)
           return shouldShowArticle(subArticle)
         })
         article.subArticles = filteredSubArticles
       }
 
-      // For projects: already filtered server-side based on published state
-      if (article.isProject) {
-        return true
-      }
-
-      // For standard articles: apply time/day filtering on client
+      // Apply time/day filtering to all articles (both standard and project)
       return shouldShowArticle(article)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
