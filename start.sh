@@ -12,4 +12,6 @@ node prisma/seed.js || echo "Seed script failed, but continuing..."
 
 # Start the Next.js application
 echo "Starting Next.js application..."
+echo "PORT environment variable: $PORT"
+echo "HOSTNAME environment variable: $HOSTNAME"
 exec node server.js

@@ -51,7 +51,9 @@ RUN chmod +x start.sh
 
 USER nextjs
 
-EXPOSE 3000
+# Railway provides PORT environment variable dynamically
+EXPOSE $PORT
 ENV HOSTNAME="0.0.0.0"
+ENV PORT=${PORT:-3000}
 
 CMD ["./start.sh"]
