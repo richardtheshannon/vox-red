@@ -9,10 +9,11 @@ export const runtime = 'nodejs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
-    if (!params.path || params.path.length === 0) {
+    const { path: pathArray } = await params
+    if (!pathArray || pathArray.length === 0) {
       return NextResponse.json(
         { error: 'Invalid path' },
         { status: 400 }
@@ -20,7 +21,7 @@ export async function GET(
     }
 
     // Reconstruct the file path from segments
-    const filePath = path.join(UPLOAD_DIR, 'audio', ...params.path)
+    const filePath = path.join(UPLOAD_DIR, 'audio', ...pathArray)
 
     // Security: Ensure the resolved path is within the uploads directory
     const resolvedPath = path.resolve(filePath)
@@ -55,11 +56,11 @@ export async function GET(
     const fileBuffer = await fs.readFile(resolvedPath)
 
     // Determine MIME type
-    const fileName = params.path[params.path.length - 1]
+    const fileName = pathArray[pathArray.length - 1]
     const mimeType = mime.lookup(fileName) || 'application/octet-stream'
 
     // Return file with proper headers
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': mimeType,
