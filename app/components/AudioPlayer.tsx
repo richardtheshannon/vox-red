@@ -11,6 +11,7 @@ interface AudioPlayerProps {
 export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isAutoRowPlayActive, setIsAutoRowPlayActive] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
@@ -53,11 +54,18 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       }
     }
 
+    const handleAutoRowPlayTrackActive = (event: CustomEvent) => {
+      const { articleId: activeArticleId } = event.detail
+      setIsAutoRowPlayActive(activeArticleId === articleId)
+    }
+
     // Keep only the stopAllAudio event for manual controls
     window.addEventListener('stopAllAudio', handleStopAllAudio)
+    window.addEventListener('autoRowPlayTrackActive', handleAutoRowPlayTrackActive as EventListener)
 
     return () => {
       window.removeEventListener('stopAllAudio', handleStopAllAudio)
+      window.removeEventListener('autoRowPlayTrackActive', handleAutoRowPlayTrackActive as EventListener)
     }
   }, [articleId])
 
@@ -92,15 +100,17 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
         aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
       >
         {isLoading ? (
-          <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
-        ) : isPlaying ? (
-          <svg className="w-3 h-3 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-          </svg>
+          <span className="material-icons text-sm text-gray-600 dark:text-gray-300 animate-spin">
+            hourglass_empty
+          </span>
+        ) : (isPlaying || isAutoRowPlayActive) ? (
+          <span className="material-icons text-sm text-red-500">
+            {isPlaying ? 'pause_circle' : 'play_circle'}
+          </span>
         ) : (
-          <svg className="w-3 h-3 ml-0.5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
+          <span className="material-icons text-sm text-gray-600 dark:text-gray-300">
+            play_circle
+          </span>
         )}
       </button>
     </div>

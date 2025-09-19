@@ -78,6 +78,11 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
       // Wait for navigation to complete
       await new Promise(resolve => setTimeout(resolve, 600))
 
+      // Broadcast which track is now playing for visual feedback
+      window.dispatchEvent(new CustomEvent('autoRowPlayTrackActive', {
+        detail: { articleId: track.articleId }
+      }))
+
       // Find the audio element
       const audioElement = document.querySelector(`audio[data-article-id="${track.articleId}"]`) as HTMLAudioElement
 
@@ -98,12 +103,21 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
         console.log(`Auto-row-play: Audio element not found for ${track.articleId}`)
         // Continue to next track
       }
+
+      // Clear the active track when this track completes
+      window.dispatchEvent(new CustomEvent('autoRowPlayTrackActive', {
+        detail: { articleId: null }
+      }))
     }
 
     console.log('Auto-row-play: All tracks completed')
     playingRef.current = false
     setIsPlaying(false)
     setCurrentTrackIndex(null)
+    // Clear any active track indicators
+    window.dispatchEvent(new CustomEvent('autoRowPlayTrackActive', {
+      detail: { articleId: null }
+    }))
   }
 
   const toggleAutoRowPlay = () => {
@@ -114,6 +128,10 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
       setIsPlaying(false)
       setCurrentTrackIndex(null)
       stopAllAudio()
+      // Clear any active track indicators
+      window.dispatchEvent(new CustomEvent('autoRowPlayTrackActive', {
+        detail: { articleId: null }
+      }))
     } else {
       // Start auto-row-play
       console.log('Auto-row-play: Starting with', audioTracks.length, 'tracks')
