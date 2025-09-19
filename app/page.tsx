@@ -25,8 +25,8 @@ export default async function Home() {
     if (article.isProject) {
       return article.published || article.subArticles.length > 0
     }
-    // For standard articles: must be published (time/day filtering happens on client)
-    return article.published
+    // For standard articles: show if main article is published OR has published sub-articles
+    return article.published || article.subArticles.length > 0
   })
 
   return (

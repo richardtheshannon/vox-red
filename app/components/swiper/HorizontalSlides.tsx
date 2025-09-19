@@ -82,8 +82,15 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         setIsCompleted(true)
       }
     } else {
-      // Non-project articles show all slides
-      setVisibleSlides([mainArticle, ...subArticles])
+      // Non-project articles show only published slides
+      const slides = []
+      if (mainArticle.published) {
+        slides.push(mainArticle)
+      }
+      // Add published sub-articles
+      const publishedSubArticles = subArticles.filter(sub => sub.published)
+      slides.push(...publishedSubArticles)
+      setVisibleSlides(slides)
     }
   }, [mainArticle, subArticles])
 

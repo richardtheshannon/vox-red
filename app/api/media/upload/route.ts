@@ -106,14 +106,17 @@ export async function POST(request: NextRequest) {
       media: media
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace'
+
     console.error('Upload error details:', {
-      error: error.message,
-      stack: error.stack,
+      error: errorMessage,
+      stack: errorStack,
       uploadDir: UPLOAD_DIR,
       nodeEnv: process.env.NODE_ENV
     })
     return NextResponse.json(
-      { error: 'Failed to upload file', details: error.message },
+      { error: 'Failed to upload file', details: errorMessage },
       { status: 500 }
     )
   }

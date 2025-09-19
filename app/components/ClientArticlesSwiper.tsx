@@ -63,8 +63,11 @@ export default function ClientArticlesSwiper({ initialArticles }: ClientArticles
         article.subArticles = filteredSubArticles
       }
 
-      // Apply time/day filtering to all articles (both standard and project)
-      return shouldShowArticle(article)
+      // Show the row if: main article is published and passes filters OR has any published sub-articles
+      const mainArticleShows = shouldShowArticle(article)
+      const hasPublishedSubArticles = article.subArticles && article.subArticles.length > 0
+
+      return mainArticleShows || hasPublishedSubArticles
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialArticles, currentTime])
