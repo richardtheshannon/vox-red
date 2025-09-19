@@ -55,8 +55,12 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
     }
 
     const handleAutoRowPlayTrackActive = (event: CustomEvent) => {
-      const { articleId: activeArticleId } = event.detail
-      setIsAutoRowPlayActive(activeArticleId === articleId)
+      const { articleId: activeArticleId, rowId } = event.detail
+      // Only respond if this is for our row (check if our articleId exists in the rowId)
+      const isOurRow = rowId ? rowId.includes(articleId) : true // fallback for backward compatibility
+      if (isOurRow) {
+        setIsAutoRowPlayActive(activeArticleId === articleId)
+      }
     }
 
     // Keep only the stopAllAudio event for manual controls

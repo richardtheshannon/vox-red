@@ -34,36 +34,37 @@ interface HorizontalSlidesProps {
 export default function HorizontalSlides({ mainArticle, subArticles }: HorizontalSlidesProps) {
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
+  const [audioTracks, setAudioTracks] = useState<Array<{
+    url: string
+    title: string
+    articleId: string
+    slideIndex: number
+  }>>([])
   const swiperRef = useRef<SwiperType | null>(null)
 
-  // Extract audio tracks from all articles in this row
-  const getAudioTracks = () => {
-    const tracks = []
+  // Update audio tracks whenever visible slides change
+  useEffect(() => {
+    const tracks: Array<{
+      url: string
+      title: string
+      articleId: string
+      slideIndex: number
+    }> = []
 
-    // Add main article if it has audio
-    if (mainArticle.audioUrl) {
-      tracks.push({
-        url: mainArticle.audioUrl,
-        title: mainArticle.title,
-        articleId: mainArticle.id,
-        slideIndex: 0
-      })
-    }
-
-    // Add sub-articles with audio in order
-    subArticles.forEach((subArticle, index) => {
-      if (subArticle.audioUrl) {
+    // Map through visible slides and add audio tracks with correct slide indices
+    visibleSlides.forEach((slide, index) => {
+      if (slide.audioUrl) {
         tracks.push({
-          url: subArticle.audioUrl,
-          title: subArticle.title,
-          articleId: subArticle.id,
-          slideIndex: index + 1 // +1 because main article is at index 0
+          url: slide.audioUrl,
+          title: slide.title,
+          articleId: slide.id,
+          slideIndex: index // Use actual visible slide index
         })
       }
     })
 
-    return tracks
-  }
+    setAudioTracks(tracks)
+  }, [visibleSlides])
 
   useEffect(() => {
     // Initialize visible slides - only show published articles
@@ -182,7 +183,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     // If only one slide, show it without swiper but with auto-row-play button
     return (
       <>
-        <AutoRowPlayButton audioTracks={getAudioTracks()} />
+        <AutoRowPlayButton audioTracks={audioTracks} />
         <ArticleSlide
           article={visibleSlides[0]}
           onComplete={handleSlideComplete}
@@ -197,7 +198,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
   return (
     <>
-      <AutoRowPlayButton audioTracks={getAudioTracks()} />
+      <AutoRowPlayButton audioTracks={audioTracks} />
       <Swiper
       onSwiper={(swiper) => {
         swiperRef.current = swiper
