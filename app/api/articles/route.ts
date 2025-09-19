@@ -13,9 +13,13 @@ export async function GET() {
       },
       orderBy: { orderPosition: 'asc' },
       include: {
+        media: true,
         subArticles: {
           where: { published: true }, // Only include published sub-articles
-          orderBy: { orderPosition: 'asc' }
+          orderBy: { orderPosition: 'asc' },
+          include: {
+            media: true
+          }
         }
       }
     })

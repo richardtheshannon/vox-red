@@ -13,6 +13,9 @@ export async function GET(
     
     const article = await prisma.article.findUnique({
       where: { id },
+      include: {
+        media: true
+      }
     })
 
     if (!article) {

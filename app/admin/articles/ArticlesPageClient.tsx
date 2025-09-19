@@ -47,6 +47,11 @@ export default function ArticlesPageClient({ initialArticles }: ArticlesPageClie
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Articles</h1>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Link href="/admin/media">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-sm sm:text-base">
+                Media Manager
+              </Button>
+            </Link>
             <Button
               onClick={() => setShowImportModal(true)}
               className="bg-green-600 hover:bg-green-700 text-sm sm:text-base"
@@ -70,6 +75,11 @@ export default function ArticlesPageClient({ initialArticles }: ArticlesPageClie
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 sm:p-8 text-center">
             <p className="text-gray-500 dark:text-gray-400 mb-4">No articles yet</p>
             <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
+              <Link href="/admin/media">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-sm sm:text-base">
+                  Media Manager
+                </Button>
+              </Link>
               <Button
                 onClick={() => setShowImportModal(true)}
                 className="bg-green-600 hover:bg-green-700 text-sm sm:text-base"

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
+import MediaSelector from './MediaSelector'
 import { DAY_OPTIONS } from '../../lib/publishingUtils'
 
 const TiptapEditor = dynamic(() => import('./TiptapEditor'), { ssr: false })
@@ -16,6 +17,7 @@ interface ArticleFormProps {
     subtitle?: string | null
     content: string
     audioUrl?: string | null
+    mediaId?: string | null
     textAlign?: string
     verticalAlign?: string
     parentId?: string | null
@@ -37,6 +39,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
   const [subtitle, setSubtitle] = useState(article?.subtitle || '')
   const [content, setContent] = useState(article?.content || '')
   const [audioUrl, setAudioUrl] = useState(article?.audioUrl || '')
+  const [mediaId, setMediaId] = useState<string | null>(article?.mediaId || null)
   const [textAlign, setTextAlign] = useState(article?.textAlign || 'left')
   const [verticalAlign, setVerticalAlign] = useState(article?.verticalAlign || 'center')
   const [parentId, setParentId] = useState<string | null>(article?.parentId || null)
@@ -78,6 +81,12 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
     }
   }, [article?.id, allArticles])
 
+  // Handle media selection changes
+  const handleMediaChange = (url: string | null, id: string | null) => {
+    setAudioUrl(url || '')
+    setMediaId(id)
+  }
+
   // Handle day selection changes
   const handleDayChange = (value: string) => {
     if (value === 'all') {
@@ -110,6 +119,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
         subtitle: subtitle || null,
         content,
         audioUrl: audioUrl || null,
+        mediaId: mediaId || null,
         textAlign,
         verticalAlign,
         parentId: parentId || null,
@@ -161,13 +171,12 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
             placeholder="Enter article subtitle"
           />
 
-          <Input
-            label="Audio URL (optional)"
-            type="url"
+          <MediaSelector
             value={audioUrl}
-            onChange={(e) => setAudioUrl(e.target.value)}
-            placeholder="https://example.com/audio.mp3"
-            help="Enter a URL to an MP3 file to add an audio player to this article"
+            mediaId={mediaId}
+            onChange={handleMediaChange}
+            label="Audio File (optional)"
+            help="Select an uploaded MP3 file or upload a new one to add an audio player to this article"
           />
 
           <div>

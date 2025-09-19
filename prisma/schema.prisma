@@ -27,7 +27,8 @@ model Article {
   title            String    @db.VarChar(255)
   subtitle         String?   @db.VarChar(500)
   content          String    @db.Text
-  audioUrl         String?   @map("audio_url") @db.VarChar(500) // Optional MP3 file URL
+  audioUrl         String?   @map("audio_url") @db.VarChar(500) // Optional MP3 file URL - DEPRECATED
+  mediaId          String?   @map("media_id") // New field for uploaded files
   orderPosition    Int       @map("order_position")
   textAlign        String    @default("left") @map("text_align") // "left" or "right"
   verticalAlign    String    @default("center") @map("vertical_align") // "top", "center", or "bottom"
@@ -42,10 +43,12 @@ model Article {
 
   parent        Article?  @relation("ArticleToSubArticles", fields: [parentId], references: [id], onDelete: Cascade)
   subArticles   Article[] @relation("ArticleToSubArticles")
+  media         Media?    @relation(fields: [mediaId], references: [id], onDelete: SetNull)
 
   @@index([orderPosition])
   @@index([parentId])
   @@index([published])
+  @@index([mediaId])
   @@map("articles")
 }
 
@@ -67,4 +70,38 @@ model Documentation {
   @@index([orderPosition])
   @@index([parentId])
   @@map("documentation")
+}
+
+model MediaFolder {
+  id        String        @id @default(uuid())
+  name      String        @db.VarChar(255)
+  path      String        @db.VarChar(500) // Folder path
+  parentId  String?       @map("parent_id") // For nested folders
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  parent    MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  MediaFolder[] @relation("FolderHierarchy")
+  media     Media[]
+
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+model Media {
+  id         String       @id @default(uuid())
+  filename   String       @db.VarChar(255) // Original filename
+  storedName String       @map("stored_name") @db.VarChar(255) // Generated unique filename
+  path       String       @db.VarChar(500) // Full server path
+  url        String       @db.VarChar(500) // Public URL for serving
+  size       Int          // File size in bytes
+  mimeType   String       @map("mime_type") @db.VarChar(100) // audio/mpeg, etc.
+  folderId   String?      @map("folder_id") // Optional folder organization
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  folder     MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  articles   Article[]
+
+  @@index([folderId])
+  @@map("media")
 }

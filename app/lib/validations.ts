@@ -8,6 +8,10 @@ export const articleSchema = z.object({
     (val) => val === '' ? null : val,
     z.string().url().max(500).nullable().optional()
   ),
+  mediaId: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().uuid().nullable().optional()
+  ),
   orderPosition: z.number().int().min(0).optional(),
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
