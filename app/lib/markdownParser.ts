@@ -41,7 +41,8 @@ export async function parseMarkdownProject(markdown: string): Promise<ParsedMark
       const nextHeading = headings[i + 1]
 
       // Get content between current and next heading (or end of file)
-      const startIndex = currentHeading.index + markdown.indexOf('\n', currentHeading.index) + 1
+      const headingLineEnd = markdown.indexOf('\n', currentHeading.index)
+      const startIndex = headingLineEnd !== -1 ? headingLineEnd + 1 : currentHeading.index
       const endIndex = nextHeading ? nextHeading.index : markdown.length
 
       const content = markdown.substring(startIndex, endIndex).trim()
