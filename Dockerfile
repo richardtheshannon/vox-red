@@ -52,7 +52,8 @@ RUN chmod +x start.sh
 USER nextjs
 
 # Railway provides PORT environment variable dynamically
-EXPOSE $PORT
+# Note: EXPOSE doesn't affect runtime, just documentation
+EXPOSE 8082
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=${PORT:-3000}
 
