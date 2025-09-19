@@ -282,7 +282,6 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
                           type="checkbox"
                           checked={selectedDays.includes(day.value)}
                           onChange={() => handleDayChange(day.value)}
-                          disabled={selectedDays.length === 0}
                           className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{day.label}</span>

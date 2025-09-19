@@ -44,40 +44,40 @@ export default function ArticlesPageClient({ initialArticles }: ArticlesPageClie
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
-          <div className="flex space-x-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Articles</h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button
               onClick={() => setShowImportModal(true)}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 text-sm sm:text-base"
             >
               Import Project
             </Button>
             <Link href="/admin/articles/new">
-              <Button>Create New Article</Button>
+              <Button className="text-sm sm:text-base">Create New Article</Button>
             </Link>
           </div>
         </div>
 
         {initialArticles.length > 0 ? (
           <>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               Drag and drop articles to reorder them. The order here determines how they appear on the public site.
             </p>
             <ArticlesList initialArticles={initialArticles} />
           </>
         ) : (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500 mb-4">No articles yet</p>
-            <div className="flex justify-center space-x-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 sm:p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 mb-4">No articles yet</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
               <Button
                 onClick={() => setShowImportModal(true)}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 text-sm sm:text-base"
               >
                 Import Project
               </Button>
               <Link href="/admin/articles/new">
-                <Button>Create Your First Article</Button>
+                <Button className="text-sm sm:text-base">Create Your First Article</Button>
               </Link>
             </div>
           </div>

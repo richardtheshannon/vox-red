@@ -142,7 +142,7 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
   }
 
   return (
-    <div className="fixed top-6 left-16 z-50 flex items-center gap-2">
+    <div className="fixed top-6 left-20 z-50 flex items-center gap-2">
       <button
         onClick={toggleAutoRowPlay}
         className="p-2 transition-opacity hover:opacity-70"

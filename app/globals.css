@@ -408,7 +408,12 @@ body > div:last-of-type[style*="fixed"] {
 
 /* Custom dark mode background colors */
 .dark .bg-gray-900 {
-  background-color: rgb(35 35 35) !important;
+  background-color: rgb(25 25 25) !important;
+}
+
+/* Override Tailwind's dark:bg-gray-900 class */
+.dark\:bg-gray-900:is(.dark *) {
+  background-color: rgb(25 25 25) !important;
 }
 
 /* Enhanced text wrapping for all content */

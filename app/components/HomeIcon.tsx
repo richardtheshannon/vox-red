@@ -32,22 +32,23 @@ export default function HomeIcon() {
   if (!mounted || isAdminPage || !isAuthenticated) return null
 
   const handleHomeClick = () => {
-    // Dispatch a custom event to navigate to first slide
-    window.dispatchEvent(new CustomEvent('navigateToFirstSlide'))
+    // Reload the page to reset everything to homepage
+    window.location.reload()
   }
 
   return (
     <button
       onClick={handleHomeClick}
       className="fixed top-6 left-6 z-50 p-2 transition-opacity hover:opacity-70"
-      aria-label="Go to first slide"
+      aria-label="Refresh page"
     >
       <Image
         src="/media/icon-96x96.png"
         alt="Home"
-        width={24}
-        height={24}
-        className="w-6 h-6"
+        width={34}
+        height={34}
+        className="w-[34px] h-[34px] brightness-0 saturate-100 invert-0 sepia-100 hue-rotate-[0deg] contrast-200"
+        style={{ filter: 'brightness(0) saturate(100%) invert(16%) sepia(99%) saturate(7404%) hue-rotate(359deg) brightness(95%) contrast(118%)' }}
       />
     </button>
   )

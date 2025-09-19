@@ -244,12 +244,12 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
       {articles.map((article, index) => (
         <div
           key={article.id}
-          className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+          className={`bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
             isReordering ? 'opacity-50' : ''
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex flex-col space-y-1">
                 <button
                   onClick={() => moveArticle(article.id, 'up')}
@@ -272,12 +272,12 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                   </svg>
                 </button>
               </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
                             {article.subArticles && article.subArticles.length > 0 && (
                               <button
                                 onClick={() => toggleGroup(article.id)}
-                                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0"
                                 title={collapsedGroups.has(article.id) ? 'Expand group' : 'Collapse group'}
                               >
                                 <svg className="w-4 h-4 transition-transform" style={{
@@ -287,7 +287,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                 </svg>
                               </button>
                             )}
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{article.title}</h3>
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 truncate sm:truncate-none">{article.title}</h3>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               article.published
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -320,17 +320,17 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                           </p>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2 sm:space-x-2 sm:gap-0">
                         <select
                           value={article.published ? 'published' : 'unpublished'}
                           onChange={() => handlePublishToggle(article.id, article.published || false)}
-                          className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          className="text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
                         >
                           <option value="published">Published</option>
                           <option value="unpublished">Unpublished</option>
                         </select>
                         <Link href={`/admin/articles/${article.id}/edit`}>
-                          <Button variant="secondary" size="sm">
+                          <Button variant="secondary" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
                             Edit
                           </Button>
                         </Link>
@@ -338,6 +338,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                           variant="danger"
                           size="sm"
                           onClick={() => handleDelete(article.id)}
+                          className="text-xs sm:text-sm px-2 sm:px-3"
                         >
                           Delete
                         </Button>
@@ -345,15 +346,15 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                     </div>
                     {/* Sub-articles section */}
                     {article.subArticles && article.subArticles.length > 0 && !collapsedGroups.has(article.id) && (
-                      <div className="mt-3 ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-4 space-y-2">
+                      <div className="mt-3 ml-4 sm:ml-10 border-l-2 border-gray-200 dark:border-gray-700 pl-2 sm:pl-4 space-y-2">
                         {article.subArticles?.map((subArticle, subIndex) => (
                           <div
                             key={subArticle.id}
-                            className={`bg-gray-50 dark:bg-gray-900 p-3 rounded border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+                            className={`bg-gray-50 dark:bg-gray-900 p-2 sm:p-3 rounded border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
                               isReordering ? 'opacity-50' : ''
                             }`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                               <div className="flex items-center space-x-2">
                                 <div className="flex flex-col space-y-1">
                                   <button
@@ -377,9 +378,9 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                     </svg>
                                   </button>
                                 </div>
-                                          <div className="flex-1">
-                                            <div className="flex items-center space-x-2">
-                                              <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                              <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                                                 {subArticle.title}
                                               </h4>
                                               <span className={`px-2 py-1 text-xs rounded-full ${
@@ -400,22 +401,23 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                             )}
                                           </div>
                                         </div>
-                                        <div className="flex space-x-2">
+                                        <div className="flex flex-wrap gap-1 sm:gap-2">
                                           <select
                                             value={subArticle.published ? 'published' : 'unpublished'}
                                             onChange={() => handlePublishToggle(subArticle.id, subArticle.published || false)}
-                                            className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                            className="text-xs border border-gray-300 dark:border-gray-600 rounded px-1 sm:px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
                                           >
                                             <option value="published">Published</option>
                                             <option value="unpublished">Unpublished</option>
                                           </select>
                                           <Link href={`/admin/articles/${subArticle.id}/edit`}>
-                                            <Button variant="secondary" size="sm">Edit</Button>
+                                            <Button variant="secondary" size="sm" className="text-xs px-1 sm:px-2">Edit</Button>
                                           </Link>
                                           <Button
                                             variant="danger"
                                             size="sm"
                                             onClick={() => handleDelete(subArticle.id)}
+                                            className="text-xs px-1 sm:px-2"
                                           >
                                             Delete
                                           </Button>
