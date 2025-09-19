@@ -5,8 +5,16 @@ export const articleSchema = z.object({
   subtitle: z.union([z.string(), z.null()]).optional().transform(val => val === '' || val === null ? null : val),
   content: z.string().min(1, "Content is required and cannot be empty"),
   audioUrl: z.preprocess(
-    (val) => val === '' ? null : val,
-    z.string().url().max(500).nullable().optional()
+    (val) => {
+      if (val === '' || val === null || val === undefined) return null
+      if (typeof val === 'string' && val.trim() === '') return null
+      return val
+    },
+    z.union([
+      z.string().url().max(500),
+      z.string().regex(/^\//).max(500), // Allow relative URLs starting with /
+      z.null()
+    ]).optional()
   ),
   mediaId: z.preprocess(
     (val) => val === '' ? null : val,

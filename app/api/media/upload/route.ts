@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
     // Get form data from request
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const selectedFolderId = formData.get('folderId') as string | null
 
     if (!file) {
       return NextResponse.json(
@@ -58,35 +59,55 @@ export async function POST(request: NextRequest) {
     const ext = path.extname(file.name) || '.mp3'
     const storedName = `${uuidv4()}${ext}`
 
-    // Create date-based folder structure
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = (now.getMonth() + 1).toString().padStart(2, '0')
-    const datePath = path.join(audioDir, year.toString(), month)
-    await fs.mkdir(datePath, { recursive: true })
+    let folder = null
+    let filePath = ''
 
-    const filePath = path.join(datePath, storedName)
+    if (selectedFolderId) {
+      // Use selected folder
+      folder = await prisma.mediaFolder.findUnique({
+        where: { id: selectedFolderId }
+      })
+
+      if (!folder) {
+        return NextResponse.json(
+          { error: 'Selected folder not found' },
+          { status: 404 }
+        )
+      }
+
+      // Create physical directory structure based on folder path
+      const folderPath = path.join(audioDir, folder.path)
+      await fs.mkdir(folderPath, { recursive: true })
+      filePath = path.join(folderPath, storedName)
+    } else {
+      // Create default date-based folder structure
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = (now.getMonth() + 1).toString().padStart(2, '0')
+      const datePath = path.join(audioDir, year.toString(), month)
+      await fs.mkdir(datePath, { recursive: true })
+      filePath = path.join(datePath, storedName)
+
+      // Get or create date-based folder
+      const folderPath = `audio/${year}/${month}`
+      folder = await prisma.mediaFolder.findFirst({
+        where: { path: folderPath }
+      })
+
+      if (!folder) {
+        folder = await prisma.mediaFolder.create({
+          data: {
+            name: `${year}-${month}`,
+            path: folderPath
+          }
+        })
+      }
+    }
 
     // Convert File to Buffer and save
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     await fs.writeFile(filePath, buffer)
-
-    // Get folder if exists
-    const folderPath = `audio/${year}/${month}`
-    let folder = await prisma.mediaFolder.findFirst({
-      where: { path: folderPath }
-    })
-
-    // Create folder if doesn't exist
-    if (!folder) {
-      folder = await prisma.mediaFolder.create({
-        data: {
-          name: `${year}-${month}`,
-          path: folderPath
-        }
-      })
-    }
 
     // Create media record in database
     const media = await prisma.media.create({
@@ -94,7 +115,7 @@ export async function POST(request: NextRequest) {
         filename: file.name,
         storedName: storedName,
         path: filePath,
-        url: `/api/media/serve/${year}/${month}/${storedName}`,
+        url: `/api/media/serve/${folder.path.replace('audio/', '')}/${storedName}`,
         size: file.size,
         mimeType: fileType,
         folderId: folder.id

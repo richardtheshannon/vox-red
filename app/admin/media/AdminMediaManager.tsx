@@ -26,12 +26,33 @@ interface MediaFile {
   }[]
 }
 
+interface MediaFolder {
+  id: string
+  name: string
+  path: string
+  parentId: string | null
+  createdAt: string
+  parent: {
+    id: string
+    name: string
+  } | null
+  children: MediaFolder[]
+  _count: {
+    media: number
+  }
+}
+
 export default function AdminMediaManager() {
   const [media, setMedia] = useState<MediaFile[]>([])
+  const [folders, setFolders] = useState<MediaFolder[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('')
+  const [showCreateFolder, setShowCreateFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderParent, setNewFolderParent] = useState('')
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -47,9 +68,22 @@ export default function AdminMediaManager() {
     }
   }, [])
 
+  const fetchFolders = useCallback(async () => {
+    try {
+      const response = await fetch('/api/media/folders')
+      if (response.ok) {
+        const data = await response.json()
+        setFolders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch folders:', error)
+    }
+  }, [])
+
   useEffect(() => {
     fetchMedia()
-  }, [fetchMedia])
+    fetchFolders()
+  }, [fetchMedia, fetchFolders])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -60,6 +94,9 @@ export default function AdminMediaManager() {
     for (const file of Array.from(files)) {
       const formData = new FormData()
       formData.append('file', file)
+      if (selectedFolderId) {
+        formData.append('folderId', selectedFolderId)
+      }
 
       try {
         const response = await fetch('/api/media/upload', {
@@ -117,6 +154,45 @@ export default function AdminMediaManager() {
     setPreviewUrl(url)
   }
 
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return
+
+    try {
+      const response = await fetch('/api/media/folders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newFolderName.trim(),
+          parentId: newFolderParent || undefined
+        })
+      })
+
+      if (response.ok) {
+        await fetchFolders()
+        setNewFolderName('')
+        setNewFolderParent('')
+        setShowCreateFolder(false)
+      } else {
+        const error = await response.json()
+        alert(`Failed to create folder: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Create folder error:', error)
+      alert('Failed to create folder')
+    }
+  }
+
+  const renderFolderOptions = () => {
+    const sortedFolders = [...folders].sort((a, b) => a.path.localeCompare(b.path))
+    return sortedFolders.map(folder => (
+      <option key={folder.id} value={folder.id}>
+        {folder.path}
+      </option>
+    ))
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -132,6 +208,12 @@ export default function AdminMediaManager() {
             >
               Back to Articles
             </Link>
+            <button
+              onClick={() => setShowCreateFolder(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              New Folder
+            </button>
             <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
               {uploading ? 'Uploading...' : 'Upload Files'}
               <input
@@ -145,7 +227,86 @@ export default function AdminMediaManager() {
             </label>
           </div>
         </div>
+
+        {/* Folder Selection and Management */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Upload to Folder:
+            </label>
+            <select
+              value={selectedFolderId}
+              onChange={(e) => setSelectedFolderId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">Default (Date-based)</option>
+              {renderFolderOptions()}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {folders.length} folder{folders.length !== 1 ? 's' : ''} available
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Create Folder Modal */}
+      {showCreateFolder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+              Create New Folder
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Folder Name:
+                </label>
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Enter folder name"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Parent Folder (optional):
+                </label>
+                <select
+                  value={newFolderParent}
+                  onChange={(e) => setNewFolderParent(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">None (Root level)</option>
+                  {renderFolderOptions()}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim()}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false)
+                  setNewFolderName('')
+                  setNewFolderParent('')
+                }}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Audio Preview Player */}
       {previewUrl && (
