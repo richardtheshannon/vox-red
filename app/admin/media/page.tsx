@@ -1,5 +1,6 @@
 import { auth } from '@/app/lib/auth'
 import { redirect } from 'next/navigation'
+import AdminLayout from '@/app/components/ui/AdminLayout'
 import AdminMediaManager from './AdminMediaManager'
 
 export const dynamic = 'force-dynamic'
@@ -12,8 +13,8 @@ export default async function AdminMediaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <AdminLayout>
       <AdminMediaManager />
-    </div>
+    </AdminLayout>
   )
 }

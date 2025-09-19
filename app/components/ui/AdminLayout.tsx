@@ -38,6 +38,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard' },
     { href: '/admin/articles', label: 'Articles' },
+    { href: '/admin/media', label: 'Media' },
     { href: '/admin/docs', label: 'Documentation' },
   ]
 
