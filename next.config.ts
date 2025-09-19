@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: 'bottom-right',
   },
+  // Force server to bind to all interfaces for Railway deployment
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['*'],
+    },
+  },
   images: {
     remotePatterns: [
       {

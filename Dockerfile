@@ -54,7 +54,10 @@ USER nextjs
 # Railway provides PORT environment variable dynamically
 # Note: EXPOSE doesn't affect runtime, just documentation
 EXPOSE 8082
+# Force Next.js to bind to all interfaces, not just localhost
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=${PORT:-3000}
+# Additional env vars to ensure proper binding
+ENV NEXT_SERVER_HOST="0.0.0.0"
 
 CMD ["./start.sh"]

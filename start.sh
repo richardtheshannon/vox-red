@@ -14,4 +14,7 @@ node prisma/seed.js || echo "Seed script failed, but continuing..."
 echo "Starting Next.js application..."
 echo "PORT environment variable: $PORT"
 echo "HOSTNAME environment variable: $HOSTNAME"
+# Force Next.js to bind to 0.0.0.0 instead of localhost for Railway
+# Use explicit hostname binding
+export HOSTNAME=0.0.0.0
 exec node server.js
