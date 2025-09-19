@@ -49,6 +49,9 @@ COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY --from=builder /app/start.sh ./start.sh
 RUN chmod +x start.sh
 
+# Create uploads directory with proper permissions
+RUN mkdir -p /app/uploads/audio && chown -R nextjs:nodejs /app/uploads
+
 USER nextjs
 
 # Railway provides PORT environment variable dynamically

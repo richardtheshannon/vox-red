@@ -106,9 +106,14 @@ export async function POST(request: NextRequest) {
       media: media
     })
   } catch (error) {
-    console.error('Upload error:', error)
+    console.error('Upload error details:', {
+      error: error.message,
+      stack: error.stack,
+      uploadDir: UPLOAD_DIR,
+      nodeEnv: process.env.NODE_ENV
+    })
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: 'Failed to upload file', details: error.message },
       { status: 500 }
     )
   }
