@@ -5,10 +5,6 @@ import SessionProvider from './components/providers/SessionProvider';
 import ConditionalThemeToggle from './components/ConditionalThemeToggle';
 import AdminSettingsIcon from './components/AdminSettingsIcon';
 import HomeIcon from './components/HomeIcon';
-import { AutoPlayProvider } from './components/AutoPlayManager';
-import AutoPlayIcon from './components/AutoPlayManager';
-import { AutoRowPlayProvider } from './components/AutoRowPlayManager';
-import AutoRowPlayIcon from './components/AutoRowPlayManager';
 
 const unicaOne = Unica_One({
   weight: '400',
@@ -61,16 +57,10 @@ export default function RootLayout({
         className={`${unicaOne.variable} ${roboto.variable} antialiased`}
       >
         <SessionProvider>
-          <AutoPlayProvider>
-            <AutoRowPlayProvider>
-              <ConditionalThemeToggle />
-              <AdminSettingsIcon />
-              <HomeIcon />
-              <AutoPlayIcon />
-              <AutoRowPlayIcon />
-              {children}
-            </AutoRowPlayProvider>
-          </AutoPlayProvider>
+          <ConditionalThemeToggle />
+          <AdminSettingsIcon />
+          <HomeIcon />
+          {children}
         </SessionProvider>
       </body>
     </html>

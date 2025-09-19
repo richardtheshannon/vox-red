@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
+import AutoRowPlayButton from '../AutoRowPlayButton'
 
 interface ArticleSlideProps {
   article: {
@@ -17,15 +18,26 @@ interface ArticleSlideProps {
     parentId?: string | null
   }
   onComplete?: (articleId: string) => Promise<void>
+  showAutoRowPlay?: boolean // Optional prop to show auto-row-play button
 }
 
-export default function ArticleSlide({ article, onComplete }: ArticleSlideProps) {
+export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
 
-  // Auto-play is now handled by the simplified AudioPlayer system
+  // Create audio tracks for auto-row-play (only if this article has audio)
+  const getAudioTracks = () => {
+    if (showAutoRowPlay && article.audioUrl) {
+      return [{
+        url: article.audioUrl,
+        title: article.title,
+        articleId: article.id
+      }]
+    }
+    return []
+  }
 
   // Determine text alignment classes
   const getTextAlignClasses = () => {
@@ -87,6 +99,8 @@ export default function ArticleSlide({ article, onComplete }: ArticleSlideProps)
 
   return (
     <div className="h-full flex flex-col relative">
+      {/* Auto-row-play button for single articles */}
+      {showAutoRowPlay && <AutoRowPlayButton audioTracks={getAudioTracks()} />}
       {/* Fixed Header - 80px */}
       <div className="absolute top-0 left-0 right-0 h-20 z-50 flex items-center justify-between px-4">
         {/* Header icons will be positioned here by the existing components */}

@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useAutoPlay } from './AutoPlayManager'
-import { useAutoRowPlay } from './AutoRowPlayManager'
 
 interface AudioPlayerProps {
   audioUrl: string
@@ -14,25 +12,6 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
-  const { isAutoPlaying, currentTrackIndex, audioTracks } = useAutoPlay()
-  const { isAutoRowPlaying, currentRowTrackIndex, currentRowAudioTracks } = useAutoRowPlay()
-
-  // Check if this is the current track in auto-play
-  const currentTrack = audioTracks[currentTrackIndex]
-  const isCurrentTrack = isAutoPlaying && currentTrack?.articleId === articleId
-
-  // Check if this is the current track in auto-row-play
-  const currentRowTrack = currentRowAudioTracks[currentRowTrackIndex]
-  const isCurrentRowTrack = isAutoRowPlaying && currentRowTrack?.articleId === articleId
-
-  // Debug logging
-  useEffect(() => {
-    console.log(`=== AudioPlayer DEBUG ===`)
-    console.log(`AudioPlayer ID: ${articleId}`)
-    console.log(`Audio URL: ${audioUrl}`)
-    console.log('Current row tracks:', currentRowAudioTracks.map(t => ({ id: t.articleId, title: t.title })))
-    console.log('Is this player in current row tracks?', currentRowAudioTracks.some(t => t.articleId === articleId))
-  }, [articleId, audioUrl, currentRowAudioTracks])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -109,13 +88,7 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       <button
         onClick={togglePlayPause}
         disabled={isLoading}
-        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-          isCurrentTrack
-            ? 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700'
-            : isCurrentRowTrack
-            ? 'bg-green-100 hover:bg-green-200 dark:bg-green-800 dark:hover:bg-green-700'
-            : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600'
-        } disabled:opacity-50`}
+        className="w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
       >
         {isLoading ? (

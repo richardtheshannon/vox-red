@@ -7,7 +7,6 @@ import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import HorizontalSlides from './HorizontalSlides'
 import { useRealtime } from '@/app/hooks/useRealtime'
-import { useAutoRowPlay } from '../AutoRowPlayManager'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -32,7 +31,6 @@ interface ArticlesSwiperProps {
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
   const { refreshTrigger } = useRealtime()
-  const { updateCurrentRow } = useAutoRowPlay()
   const swiperRef = useRef<SwiperType | null>(null)
 
   useEffect(() => {
@@ -61,33 +59,14 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       }
     }
 
-    const handleAutoPlayNavigate = (event: CustomEvent) => {
-      const { verticalIndex, horizontalIndex } = event.detail
-      console.log(`ArticlesSwiper: Navigating to vertical slide ${verticalIndex}`)
-
-      if (swiperRef.current) {
-        // Navigate to the vertical slide
-        swiperRef.current.slideTo(verticalIndex)
-
-        // After vertical navigation, dispatch event for horizontal navigation
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
-            detail: { horizontalIndex }
-          }))
-        }, 300)
-      }
-    }
-
     window.addEventListener('navigateToFirstSlide', handleNavigateToFirst)
-    window.addEventListener('autoPlayNavigate', handleAutoPlayNavigate as EventListener)
 
     return () => {
       window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
-      window.removeEventListener('autoPlayNavigate', handleAutoPlayNavigate as EventListener)
     }
   }, [])
 
-  // Simplified: Auto-play now only handles MP3 playback, not slide navigation
+  // Auto-row-play handles MP3 playback within rows, no cross-slide navigation
 
   if (articles.length === 0) {
     return (
@@ -105,14 +84,10 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       <Swiper
         onSwiper={(swiper) => {
           swiperRef.current = swiper
-          // Initialize current row on swiper mount
-          updateCurrentRow(0)
         }}
         onSlideChange={(swiper) => {
-          // Update current row for auto-row-play when user changes vertical slides
           const currentSlideIndex = swiper.activeIndex
           console.log('ArticlesSwiper: Slide changed to index:', currentSlideIndex)
-          updateCurrentRow(currentSlideIndex)
         }}
         modules={[Pagination, Keyboard, Mousewheel]}
         direction="vertical"
@@ -146,6 +121,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
             ) : (
               <ArticleSlide
                 article={article}
+                showAutoRowPlay={true}
               />
             )}
           </SwiperSlide>
