@@ -3,6 +3,7 @@ import { prisma } from '@/app/lib/database'
 import AdminLayout from '@/app/components/ui/AdminLayout'
 import Link from 'next/link'
 import Button from '@/app/components/ui/Button'
+import BackgroundMusicSettings from '@/app/components/admin/BackgroundMusicSettings'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,6 +66,8 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
+
+        <BackgroundMusicSettings />
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
           <div className="px-6 py-4 border-b dark:border-gray-700">

@@ -105,3 +105,13 @@ model Media {
   @@index([folderId])
   @@map("media")
 }
+
+model Settings {
+  id                String   @id @default(uuid())
+  key               String   @unique @db.VarChar(100)
+  value             String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}

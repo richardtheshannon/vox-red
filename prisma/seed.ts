@@ -25,6 +25,16 @@ async function main() {
 
   console.log('Admin user upserted successfully:', user.email)
 
+  // Seed default background music URL
+  await prisma.settings.upsert({
+    where: { key: 'background_music_url' },
+    update: {},
+    create: {
+      key: 'background_music_url',
+      value: 'https://vox.red/mp3/_backing-tracks/X_backing-track-02.mp3',
+    },
+  })
+
   const articlesCount = await prisma.article.count()
   
   if (articlesCount === 0) {

@@ -4,10 +4,24 @@ import { useState, useEffect, useRef } from 'react'
 
 export default function BackgroundMusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const audioUrl = 'https://vox.red/mp3/_backing-tracks/X_backing-track-02.mp3'
 
   useEffect(() => {
+    // Fetch the background music URL from settings
+    fetch('/api/settings/background-music')
+      .then(res => res.json())
+      .then(data => {
+        if (data.url) {
+          setAudioUrl(data.url)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    if (!audioUrl) return
+
     // Create audio element
     audioRef.current = new Audio(audioUrl)
     audioRef.current.loop = true
@@ -27,7 +41,7 @@ export default function BackgroundMusicPlayer() {
         audioRef.current = null
       }
     }
-  }, [])
+  }, [audioUrl])
 
   const togglePlayPause = () => {
     if (!audioRef.current) return
@@ -42,6 +56,9 @@ export default function BackgroundMusicPlayer() {
       localStorage.setItem('backgroundMusicPlaying', 'true')
     }
   }
+
+  // Don't render the button if no URL is configured
+  if (!audioUrl) return null
 
   return (
     <button
