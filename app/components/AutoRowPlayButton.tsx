@@ -146,7 +146,13 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
       }))
     }
 
-    console.log('Auto-row-play: All tracks completed')
+    console.log('Auto-row-play: All tracks completed, scrolling back to first slide')
+
+    // Navigate back to the first slide in the row
+    window.dispatchEvent(new CustomEvent('navigateToHorizontalSlide', {
+      detail: { horizontalIndex: 0 }
+    }))
+
     playingRef.current = false
     setIsPlaying(false)
     setCurrentTrackIndex(null)
