@@ -9,6 +9,25 @@ interface MediaFile {
   url: string
   size: number
   createdAt: string
+  folder?: {
+    id: string
+    name: string
+    path: string
+  } | null
+}
+
+interface MediaFolder {
+  id: string
+  name: string
+  path: string
+  parentId: string | null
+  parent?: {
+    id: string
+    name: string
+  } | null
+  _count?: {
+    media: number
+  }
 }
 
 interface MediaSelectorProps {
@@ -28,12 +47,19 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [urlInput, setUrlInput] = useState('')
+  const [folders, setFolders] = useState<MediaFolder[]>([])
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('')
+  const [showCreateFolder, setShowCreateFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderParent, setNewFolderParent] = useState('')
 
   useEffect(() => {
     if (mediaId) {
       // Fetch the selected media details
       fetchMediaById(mediaId)
     }
+    // Fetch folders on mount
+    fetchFolders()
   }, [mediaId])
 
   const fetchMediaById = async (id: string) => {
@@ -67,6 +93,59 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
     }
   }
 
+  const fetchFolders = async () => {
+    try {
+      const response = await fetch('/api/media/folders')
+      if (response.ok) {
+        const data = await response.json()
+        setFolders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch folders:', error)
+    }
+  }
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return
+
+    try {
+      const response = await fetch('/api/media/folders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newFolderName.trim(),
+          parentId: newFolderParent || undefined
+        })
+      })
+
+      if (response.ok) {
+        const newFolder = await response.json()
+        await fetchFolders()
+        setSelectedFolderId(newFolder.id) // Auto-select the new folder
+        setNewFolderName('')
+        setNewFolderParent('')
+        setShowCreateFolder(false)
+      } else {
+        const error = await response.json()
+        alert(`Failed to create folder: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Create folder error:', error)
+      alert('Failed to create folder')
+    }
+  }
+
+  const renderFolderOptions = () => {
+    const sortedFolders = [...folders].sort((a, b) => a.path.localeCompare(b.path))
+    return sortedFolders.map(folder => (
+      <option key={folder.id} value={folder.id}>
+        {folder.path}
+      </option>
+    ))
+  }
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -74,6 +153,9 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
     setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
+    if (selectedFolderId) {
+      formData.append('folderId', selectedFolderId)
+    }
 
     try {
       const response = await fetch('/api/media/upload', {
@@ -139,6 +221,27 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
         {label || 'Audio File'}
       </label>
 
+      {/* Folder Selection */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="flex-1">
+          <select
+            value={selectedFolderId}
+            onChange={(e) => setSelectedFolderId(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          >
+            <option value="">Default Folder (Date-based)</option>
+            {renderFolderOptions()}
+          </select>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowCreateFolder(true)}
+          className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+        >
+          New Folder
+        </button>
+      </div>
+
       {/* Current Selection or External URL */}
       {selectedMedia || value ? (
         <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800">
@@ -152,9 +255,16 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
                   {selectedMedia ? selectedMedia.filename : 'External URL'}
                 </p>
                 {selectedMedia && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatBytes(selectedMedia.size)}
-                  </p>
+                  <>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formatBytes(selectedMedia.size)}
+                    </p>
+                    {selectedMedia.folder && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Folder: {selectedMedia.folder.path}
+                      </p>
+                    )}
+                  </>
                 )}
                 {!selectedMedia && value && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-md">
@@ -315,6 +425,75 @@ export default function MediaSelector({ value, mediaId, onChange, label, help }:
                   className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Folder Modal */}
+      {showCreateFolder && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowCreateFolder(false)}></div>
+
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Create New Folder
+                </h3>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Folder Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="Enter folder name"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Parent Folder (optional)
+                  </label>
+                  <select
+                    value={newFolderParent}
+                    onChange={(e) => setNewFolderParent(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="">None (Root level)</option>
+                    {renderFolderOptions()}
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateFolder(false)
+                    setNewFolderName('')
+                    setNewFolderParent('')
+                  }}
+                  className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateFolder}
+                  disabled={!newFolderName.trim()}
+                  className="px-4 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Create
                 </button>
               </div>
             </div>

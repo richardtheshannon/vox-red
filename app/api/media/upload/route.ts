@@ -119,6 +119,9 @@ export async function POST(request: NextRequest) {
         size: file.size,
         mimeType: fileType,
         folderId: folder.id
+      },
+      include: {
+        folder: true
       }
     })
 
