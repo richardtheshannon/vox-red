@@ -17,6 +17,7 @@ interface Article {
   published?: boolean
   isProject?: boolean
   isFavorite?: boolean
+  articleType?: string | null
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
@@ -260,6 +261,43 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handleTypeChange = async (id: string, newType: string | null) => {
+    try {
+      const response = await fetch(`/api/articles/${id}/type`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ articleType: newType === 'none' ? null : newType }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update article type')
+      }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error updating article type:', error)
+    }
+  }
+
+  const getTypeColor = (type: string | null | undefined) => {
+    switch (type) {
+      case 'meditation':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+      case 'education':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+      case 'personal':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      case 'spiritual':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      case 'routine':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+      default:
+        return ''
+    }
+  }
+
   return (
     <div className="space-y-2">
       {articles.map((article, index) => (
@@ -321,6 +359,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                 Project
                               </span>
                             )}
+                            {article.articleType && (
+                              <span className={`px-2 py-1 text-xs rounded-full capitalize ${getTypeColor(article.articleType)}`}>
+                                {article.articleType}
+                              </span>
+                            )}
                             {formatPublishingSchedule(article) && (
                               <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                 {formatPublishingSchedule(article)}
@@ -353,6 +396,20 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                             {article.isFavorite ? 'star' : 'star_outline'}
                           </span>
                         </button>
+                        {!article.parentId && (
+                          <select
+                            value={article.articleType || 'none'}
+                            onChange={(e) => handleTypeChange(article.id, e.target.value)}
+                            className="text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
+                          >
+                            <option value="none">No Type</option>
+                            <option value="meditation">Meditation</option>
+                            <option value="education">Education</option>
+                            <option value="personal">Personal</option>
+                            <option value="spiritual">Spiritual</option>
+                            <option value="routine">Routine</option>
+                          </select>
+                        )}
                         <select
                           value={article.published ? 'published' : 'unpublished'}
                           onChange={() => handlePublishToggle(article.id, article.published || false)}
@@ -422,6 +479,11 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                               }`}>
                                                 {subArticle.published ? 'Published' : 'Unpublished'}
                                               </span>
+                                              {article.articleType && (
+                                                <span className={`px-2 py-1 text-xs rounded-full capitalize ${getTypeColor(article.articleType)}`}>
+                                                  {article.articleType}
+                                                </span>
+                                              )}
                                               {formatPublishingSchedule(subArticle) && (
                                                 <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                                   {formatPublishingSchedule(subArticle)}
