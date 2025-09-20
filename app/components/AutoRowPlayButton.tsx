@@ -190,14 +190,17 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
   }
 
   return (
-    <div className="fixed top-6 left-20 z-[60] flex items-center gap-2">
+    <div className="fixed top-6 left-28 z-[60] flex items-center gap-2">
       <button
         onClick={toggleAutoRowPlay}
         className="p-2 transition-opacity hover:opacity-70"
         aria-label={isPlaying ? 'Stop auto-row-play' : 'Start auto-row-play'}
         title={`${isPlaying ? 'Stop' : 'Play'} ${audioTracks.length} MP3${audioTracks.length !== 1 ? 's' : ''} in this row`}
       >
-        <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">
+        <span
+          className="material-icons text-gray-800 dark:text-gray-200"
+          style={{ fontSize: isPlaying ? '24px' : '30px' }}
+        >
           {isPlaying ? 'stop_circle' : 'playlist_play'}
         </span>
       </button>

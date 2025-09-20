@@ -1,6 +1,7 @@
 import { prisma } from '@/app/lib/database'
 import ClientArticlesSwiper from './components/ClientArticlesSwiper'
 import PasswordProtection from './components/PasswordProtection'
+import BackgroundMusicPlayer from './components/BackgroundMusicPlayer'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,7 @@ export default async function Home() {
 
   return (
     <PasswordProtection>
+      <BackgroundMusicPlayer />
       <ClientArticlesSwiper initialArticles={publishedArticles} />
     </PasswordProtection>
   )
