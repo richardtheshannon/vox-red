@@ -17,6 +17,7 @@ interface ArticleSlideProps {
     isProject?: boolean
     isFavorite?: boolean
     parentId?: string | null
+    articleType?: string | null
   }
   onComplete?: (articleId: string) => Promise<void>
   showAutoRowPlay?: boolean // Optional prop to show auto-row-play button
@@ -27,6 +28,24 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
+
+  // Get background color based on article type
+  const getBackgroundColor = () => {
+    switch (article.articleType) {
+      case 'meditation':
+        return '#250902'
+      case 'education':
+        return '#38040e'
+      case 'personal':
+        return '#640d14'
+      case 'spiritual':
+        return '#333333'
+      case 'routine':
+        return '#800e13'
+      default:
+        return '#ad2831' // Not Set or null
+    }
+  }
 
   // Create audio tracks for auto-row-play (only if this article has audio)
   const getAudioTracks = () => {
@@ -100,7 +119,7 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
   }
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="h-full flex flex-col relative" style={{ backgroundColor: getBackgroundColor() }}>
       {/* Auto-row-play button for single articles */}
       {showAutoRowPlay && <AutoRowPlayButton audioTracks={getAudioTracks()} />}
       {/* Fixed Header - 80px */}

@@ -23,6 +23,7 @@ interface Article {
   parentId?: string | null
   subArticles?: Article[]
   isFavorite?: boolean
+  articleType?: string | null
 }
 
 interface ArticlesSwiperProps {
@@ -112,7 +113,7 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         } as React.CSSProperties}
       >
         {articles.map((article, index) => (
-          <SwiperSlide key={article.id} className="bg-gray-50 dark:bg-[#141414]">
+          <SwiperSlide key={article.id}>
             {article.subArticles && article.subArticles.length > 0 ? (
               <HorizontalSlides
                 mainArticle={article}

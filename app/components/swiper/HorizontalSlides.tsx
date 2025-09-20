@@ -24,6 +24,7 @@ interface Article {
   isProject?: boolean
   published?: boolean
   isFavorite?: boolean
+  articleType?: string | null
 }
 
 interface HorizontalSlidesProps {
@@ -186,7 +187,11 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       <>
         <AutoRowPlayButton audioTracks={audioTracks} />
         <ArticleSlide
-          article={visibleSlides[0]}
+          article={{
+            ...visibleSlides[0],
+            // Sub-articles inherit the parent's articleType
+            articleType: visibleSlides[0].articleType || mainArticle.articleType
+          }}
           onComplete={handleSlideComplete}
         />
       </>
@@ -241,7 +246,11 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       {visibleSlides.map((article) => (
         <SwiperSlide key={article.id}>
           <ArticleSlide
-            article={article}
+            article={{
+              ...article,
+              // Sub-articles inherit the parent's articleType
+              articleType: article.articleType || mainArticle.articleType
+            }}
             onComplete={handleSlideComplete}
           />
         </SwiperSlide>

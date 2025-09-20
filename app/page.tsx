@@ -15,7 +15,25 @@ export default async function Home() {
     include: {
       subArticles: {
         where: { published: true }, // Only include published sub-articles
-        orderBy: { orderPosition: 'asc' }
+        orderBy: { orderPosition: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          subtitle: true,
+          content: true,
+          audioUrl: true,
+          orderPosition: true,
+          textAlign: true,
+          verticalAlign: true,
+          parentId: true,
+          published: true,
+          isProject: true,
+          isFavorite: true,
+          publishTimeStart: true,
+          publishTimeEnd: true,
+          publishDays: true,
+          articleType: true,
+        }
       }
     }
   })

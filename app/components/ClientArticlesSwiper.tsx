@@ -34,6 +34,7 @@ interface Article {
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
+  articleType?: string | null
 }
 
 interface ClientArticlesSwiperProps {
