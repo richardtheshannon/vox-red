@@ -3,7 +3,10 @@ import { z } from 'zod'
 export const articleSchema = z.object({
   title: z.string().min(1).max(255),
   subtitle: z.union([z.string(), z.null()]).optional().transform(val => val === '' || val === null ? null : val),
-  content: z.string().min(1, "Content is required and cannot be empty"),
+  content: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : val,
+    z.union([z.string().min(1), z.null()]).optional()
+  ),
   audioUrl: z.preprocess(
     (val) => {
       if (val === '' || val === null || val === undefined) return null

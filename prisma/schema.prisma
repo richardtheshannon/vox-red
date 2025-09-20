@@ -26,7 +26,7 @@ model Article {
   id               String    @id @default(uuid())
   title            String    @db.VarChar(255)
   subtitle         String?   @db.VarChar(500)
-  content          String    @db.Text
+  content          String?   @db.Text
   audioUrl         String?   @map("audio_url") @db.VarChar(500) // Optional MP3 file URL - DEPRECATED
   mediaId          String?   @map("media_id") // New field for uploaded files
   orderPosition    Int       @map("order_position")
