@@ -29,6 +29,7 @@ export default async function Home() {
           published: true,
           isProject: true,
           isFavorite: true,
+          pauseDuration: true,
           publishTimeStart: true,
           publishTimeEnd: true,
           publishDays: true,

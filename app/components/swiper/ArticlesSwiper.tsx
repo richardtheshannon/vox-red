@@ -24,6 +24,7 @@ interface Article {
   subArticles?: Article[]
   isFavorite?: boolean
   articleType?: string | null
+  pauseDuration?: number | null
 }
 
 interface ArticlesSwiperProps {

@@ -18,6 +18,7 @@ interface Article {
   isProject?: boolean
   isFavorite?: boolean
   articleType?: string | null
+  pauseDuration?: number | null
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
@@ -281,6 +282,27 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handlePauseDurationChange = async (id: string, duration: string) => {
+    try {
+      const pauseDuration = duration === 'none' ? null : parseInt(duration)
+      const response = await fetch(`/api/articles/${id}/pause-duration`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pauseDuration }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update pause duration')
+      }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error updating pause duration:', error)
+    }
+  }
+
   const handleDuplicate = async (id: string, includeSubArticles: boolean = false) => {
     try {
       const response = await fetch(`/api/articles/${id}/duplicate?includeSubArticles=${includeSubArticles}`, {
@@ -424,18 +446,32 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                           </span>
                         </button>
                         {!article.parentId && (
-                          <select
-                            value={article.articleType || 'none'}
-                            onChange={(e) => handleTypeChange(article.id, e.target.value)}
-                            className="text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
-                          >
-                            <option value="none">No Type</option>
-                            <option value="meditation">Meditation</option>
-                            <option value="education">Education</option>
-                            <option value="personal">Personal</option>
-                            <option value="spiritual">Spiritual</option>
-                            <option value="routine">Routine</option>
-                          </select>
+                          <>
+                            <select
+                              value={article.articleType || 'none'}
+                              onChange={(e) => handleTypeChange(article.id, e.target.value)}
+                              className="text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
+                            >
+                              <option value="none">No Type</option>
+                              <option value="meditation">Meditation</option>
+                              <option value="education">Education</option>
+                              <option value="personal">Personal</option>
+                              <option value="spiritual">Spiritual</option>
+                              <option value="routine">Routine</option>
+                            </select>
+                            <select
+                              value={article.pauseDuration?.toString() || 'none'}
+                              onChange={(e) => handlePauseDurationChange(article.id, e.target.value)}
+                              className="text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 flex-shrink"
+                              title="Pause duration between MP3s in auto-row-play"
+                            >
+                              <option value="none">No Pause</option>
+                              <option value="5">5 Sec</option>
+                              <option value="10">10 Sec</option>
+                              <option value="15">15 Sec</option>
+                              <option value="30">30 Sec</option>
+                            </select>
+                          </>
                         )}
                         <select
                           value={article.published ? 'published' : 'unpublished'}

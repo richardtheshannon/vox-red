@@ -11,9 +11,10 @@ interface AudioTrack {
 
 interface AutoRowPlayButtonProps {
   audioTracks: AudioTrack[]
+  pauseDuration?: number | null // Seconds to pause between tracks
 }
 
-export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProps) {
+export default function AutoRowPlayButton({ audioTracks, pauseDuration }: AutoRowPlayButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number | null>(null)
   const playingRef = useRef(false)
@@ -144,6 +145,12 @@ export default function AutoRowPlayButton({ audioTracks }: AutoRowPlayButtonProp
           rowId: rowIdRef.current
         }
       }))
+
+      // Add pause between tracks if configured (and not the last track)
+      if (pauseDuration && pauseDuration > 0 && i < audioTracks.length - 1) {
+        console.log(`Auto-row-play: Pausing for ${pauseDuration} seconds before next track`)
+        await new Promise(resolve => setTimeout(resolve, pauseDuration * 1000))
+      }
     }
 
     console.log('Auto-row-play: All tracks completed, scrolling back to first slide')

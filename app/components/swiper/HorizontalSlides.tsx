@@ -25,6 +25,7 @@ interface Article {
   published?: boolean
   isFavorite?: boolean
   articleType?: string | null
+  pauseDuration?: number | null
 }
 
 interface HorizontalSlidesProps {
@@ -185,7 +186,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     // If only one slide, show it without swiper but with auto-row-play button
     return (
       <>
-        <AutoRowPlayButton audioTracks={audioTracks} />
+        <AutoRowPlayButton audioTracks={audioTracks} pauseDuration={mainArticle.pauseDuration} />
         <ArticleSlide
           article={{
             ...visibleSlides[0],
@@ -204,7 +205,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
   return (
     <>
-      <AutoRowPlayButton audioTracks={audioTracks} />
+      <AutoRowPlayButton audioTracks={audioTracks} pauseDuration={mainArticle.pauseDuration} />
       <Swiper
       onSwiper={(swiper) => {
         swiperRef.current = swiper

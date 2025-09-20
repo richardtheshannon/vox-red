@@ -18,6 +18,7 @@ type ArticleListItem = {
   isProject: boolean
   isFavorite?: boolean
   articleType?: string | null
+  pauseDuration?: number | null
   subArticles: {
     id: string
     title: string
@@ -29,6 +30,7 @@ type ArticleListItem = {
     isProject: boolean
     isFavorite?: boolean
     articleType?: string | null
+    pauseDuration?: number | null
   }[]
 }
 
