@@ -10,7 +10,7 @@ interface ArticleSlideProps {
     id: string
     title: string
     subtitle?: string | null
-    content: string
+    content: string | null
     audioUrl?: string | null
     textAlign?: string
     verticalAlign?: string
@@ -140,7 +140,7 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
 
             <div
               className={`text-gray-700 dark:text-gray-300 prose dark:prose-invert max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: article.content || '' }}
             />
             </div>
           </div>

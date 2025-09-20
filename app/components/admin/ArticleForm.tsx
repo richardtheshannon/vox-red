@@ -15,7 +15,7 @@ interface ArticleFormProps {
     id: string
     title: string
     subtitle?: string | null
-    content: string
+    content: string | null
     audioUrl?: string | null
     mediaId?: string | null
     textAlign?: string

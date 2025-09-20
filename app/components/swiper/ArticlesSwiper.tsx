@@ -15,7 +15,7 @@ interface Article {
   id: string
   title: string
   subtitle?: string | null
-  content: string
+  content: string | null
   audioUrl?: string | null
   orderPosition: number
   textAlign?: string
