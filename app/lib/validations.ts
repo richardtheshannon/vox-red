@@ -27,6 +27,7 @@ export const articleSchema = z.object({
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
   parentId: z.string().uuid().nullable().optional(),
+  isFavorite: z.boolean().optional(),
   publishTimeStart: z.preprocess(
     (val) => val === '' ? null : val,
     z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()

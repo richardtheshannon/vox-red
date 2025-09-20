@@ -35,6 +35,7 @@ model Article {
   parentId         String?   @map("parent_id") // NULL for main articles, parent ID for sub-articles
   published        Boolean   @default(true) // false for unpublished/completed slides
   isProject        Boolean   @default(false) @map("is_project") // true for imported markdown projects
+  isFavorite       Boolean   @default(false) @map("is_favorite") // true for favorite/starred articles
   publishTimeStart String?   @map("publish_time_start") @db.VarChar(5) // "HH:MM" format for time-based publishing
   publishTimeEnd   String?   @map("publish_time_end") @db.VarChar(5) // "HH:MM" format for time-based publishing
   publishDays      String?   @map("publish_days") @db.VarChar(200) // JSON array of days or "all"

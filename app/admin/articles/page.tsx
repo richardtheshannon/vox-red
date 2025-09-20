@@ -17,6 +17,7 @@ export default async function ArticlesPage() {
       parentId: true,
       published: true,
       isProject: true,
+      isFavorite: true,
       publishTimeStart: true,
       publishTimeEnd: true,
       publishDays: true,
@@ -31,6 +32,7 @@ export default async function ArticlesPage() {
           parentId: true,
           published: true,
           isProject: true,
+          isFavorite: true,
           publishTimeStart: true,
           publishTimeEnd: true,
           publishDays: true

@@ -22,6 +22,7 @@ interface Article {
   verticalAlign?: string
   parentId?: string | null
   subArticles?: Article[]
+  isFavorite?: boolean
 }
 
 interface ArticlesSwiperProps {

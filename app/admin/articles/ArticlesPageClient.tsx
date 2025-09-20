@@ -16,6 +16,7 @@ type ArticleListItem = {
   parentId: string | null
   published: boolean
   isProject: boolean
+  isFavorite?: boolean
   subArticles: {
     id: string
     title: string
@@ -25,6 +26,7 @@ type ArticleListItem = {
     parentId: string | null
     published: boolean
     isProject: boolean
+    isFavorite?: boolean
   }[]
 }
 

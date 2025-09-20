@@ -23,6 +23,7 @@ interface Article {
   subArticles?: Article[]
   isProject?: boolean
   published?: boolean
+  isFavorite?: boolean
 }
 
 interface HorizontalSlidesProps {

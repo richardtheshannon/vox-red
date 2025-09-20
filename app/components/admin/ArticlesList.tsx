@@ -16,6 +16,7 @@ interface Article {
   subArticles?: Article[]
   published?: boolean
   isProject?: boolean
+  isFavorite?: boolean
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
@@ -239,6 +240,26 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handleFavoriteToggle = async (id: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/articles/${id}/favorite`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isFavorite: !currentStatus }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update favorite status')
+      }
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error updating favorite status:', error)
+    }
+  }
+
   return (
     <div className="space-y-2">
       {articles.map((article, index) => (
@@ -321,6 +342,17 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 sm:space-x-2 sm:gap-0">
+                        <button
+                          onClick={() => handleFavoriteToggle(article.id, article.isFavorite || false)}
+                          className={`p-1 transition-colors ${
+                            article.isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'
+                          }`}
+                          title={article.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <span className="material-icons text-xl">
+                            {article.isFavorite ? 'star' : 'star_outline'}
+                          </span>
+                        </button>
                         <select
                           value={article.published ? 'published' : 'unpublished'}
                           onChange={() => handlePublishToggle(article.id, article.published || false)}
@@ -402,6 +434,17 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                           </div>
                                         </div>
                                         <div className="flex flex-wrap gap-1 sm:gap-2">
+                                          <button
+                                            onClick={() => handleFavoriteToggle(subArticle.id, subArticle.isFavorite || false)}
+                                            className={`p-1 transition-colors ${
+                                              subArticle.isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'
+                                            }`}
+                                            title={subArticle.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                          >
+                                            <span className="material-icons text-lg">
+                                              {subArticle.isFavorite ? 'star' : 'star_outline'}
+                                            </span>
+                                          </button>
                                           <select
                                             value={subArticle.published ? 'published' : 'unpublished'}
                                             onChange={() => handlePublishToggle(subArticle.id, subArticle.published || false)}

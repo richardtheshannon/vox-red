@@ -30,6 +30,7 @@ interface Article {
   subArticles?: Article[]
   published: boolean
   isProject: boolean
+  isFavorite?: boolean
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null

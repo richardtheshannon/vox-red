@@ -15,6 +15,7 @@ interface ArticleSlideProps {
     textAlign?: string
     verticalAlign?: string
     isProject?: boolean
+    isFavorite?: boolean
     parentId?: string | null
   }
   onComplete?: (articleId: string) => Promise<void>
@@ -122,6 +123,14 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
           right: '15px'
         }}
       >
+        {/* Favorite star icon - fixed in top-left corner of article-scroll */}
+        {article.isFavorite && (
+          <div className="fixed top-24 left-6 z-40">
+            <span className="material-icons text-3xl text-gray-900 dark:text-gray-100">
+              star
+            </span>
+          </div>
+        )}
         <div className={`flex flex-col ${getVerticalAlignClasses()} min-h-full`}>
           <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
             <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
