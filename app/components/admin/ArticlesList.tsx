@@ -281,6 +281,24 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handleDuplicate = async (id: string, includeSubArticles: boolean = false) => {
+    try {
+      const response = await fetch(`/api/articles/${id}/duplicate?includeSubArticles=${includeSubArticles}`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate article')
+      }
+
+      const result = await response.json()
+      console.log(result.message)
+      router.refresh()
+    } catch (error) {
+      console.error('Error duplicating article:', error)
+    }
+  }
+
   const getTypeColor = (type: string | null | undefined) => {
     switch (type) {
       case 'meditation':
@@ -396,6 +414,15 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                             {article.isFavorite ? 'star' : 'star_outline'}
                           </span>
                         </button>
+                        <button
+                          onClick={() => handleDuplicate(article.id, false)}
+                          className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          title="Duplicate article"
+                        >
+                          <span className="material-icons text-xl">
+                            file_copy
+                          </span>
+                        </button>
                         {!article.parentId && (
                           <select
                             value={article.articleType || 'none'}
@@ -505,6 +532,15 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                           >
                                             <span className="material-icons text-lg">
                                               {subArticle.isFavorite ? 'star' : 'star_outline'}
+                                            </span>
+                                          </button>
+                                          <button
+                                            onClick={() => handleDuplicate(subArticle.id, false)}
+                                            className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                            title="Duplicate article"
+                                          >
+                                            <span className="material-icons text-lg">
+                                              file_copy
                                             </span>
                                           </button>
                                           <select
