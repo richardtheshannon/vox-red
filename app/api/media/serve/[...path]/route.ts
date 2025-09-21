@@ -3,7 +3,8 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import mime from 'mime-types'
 
-const UPLOAD_DIR = process.env.NODE_ENV === 'production' ? '/app/uploads' : './uploads'
+// Use UPLOAD_PATH env var if set (for Railway persistent volumes), otherwise use defaults
+const UPLOAD_DIR = process.env.UPLOAD_PATH || (process.env.NODE_ENV === 'production' ? '/app/uploads' : './uploads')
 
 export const runtime = 'nodejs'
 

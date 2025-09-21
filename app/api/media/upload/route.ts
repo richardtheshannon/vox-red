@@ -6,7 +6,8 @@ import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import mime from 'mime-types'
 
-const UPLOAD_DIR = process.env.NODE_ENV === 'production' ? '/app/uploads' : './uploads'
+// Use UPLOAD_PATH env var if set (for Railway persistent volumes), otherwise use defaults
+const UPLOAD_DIR = process.env.UPLOAD_PATH || (process.env.NODE_ENV === 'production' ? '/app/uploads' : './uploads')
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg', 'audio/x-mp3']
 
@@ -22,9 +23,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Ensure upload directory exists
+    // Ensure upload directory exists with better error handling
     const audioDir = path.join(UPLOAD_DIR, 'audio')
-    await fs.mkdir(audioDir, { recursive: true })
+    try {
+      await fs.mkdir(audioDir, { recursive: true })
+    } catch (mkdirError: any) {
+      console.error('Directory creation error:', mkdirError)
+      // If directory exists, that's okay
+      if (mkdirError.code !== 'EEXIST') {
+        return NextResponse.json(
+          {
+            error: `Unable to create upload directory: ${mkdirError.message}`,
+            details: {
+              uploadDir: UPLOAD_DIR,
+              audioDir: audioDir,
+              code: mkdirError.code
+            }
+          },
+          { status: 500 }
+        )
+      }
+    }
 
     // Get form data from request
     const formData = await request.formData()
@@ -77,7 +96,23 @@ export async function POST(request: NextRequest) {
 
       // Create physical directory structure based on folder path
       const folderPath = path.join(audioDir, folder.path)
-      await fs.mkdir(folderPath, { recursive: true })
+      try {
+        await fs.mkdir(folderPath, { recursive: true })
+      } catch (mkdirError: any) {
+        console.error('Folder directory creation error:', mkdirError)
+        if (mkdirError.code !== 'EEXIST') {
+          return NextResponse.json(
+            {
+              error: `Unable to create folder directory: ${mkdirError.message}`,
+              details: {
+                folderPath: folderPath,
+                code: mkdirError.code
+              }
+            },
+            { status: 500 }
+          )
+        }
+      }
       filePath = path.join(folderPath, storedName)
     } else {
       // Create default date-based folder structure
@@ -85,7 +120,23 @@ export async function POST(request: NextRequest) {
       const year = now.getFullYear()
       const month = (now.getMonth() + 1).toString().padStart(2, '0')
       const datePath = path.join(audioDir, year.toString(), month)
-      await fs.mkdir(datePath, { recursive: true })
+      try {
+        await fs.mkdir(datePath, { recursive: true })
+      } catch (mkdirError: any) {
+        console.error('Date directory creation error:', mkdirError)
+        if (mkdirError.code !== 'EEXIST') {
+          return NextResponse.json(
+            {
+              error: `Unable to create date directory: ${mkdirError.message}`,
+              details: {
+                datePath: datePath,
+                code: mkdirError.code
+              }
+            },
+            { status: 500 }
+          )
+        }
+      }
       filePath = path.join(datePath, storedName)
 
       // Get or create date-based folder

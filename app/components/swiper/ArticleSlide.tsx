@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
 import AutoRowPlayButton from '../AutoRowPlayButton'
@@ -25,25 +25,69 @@ interface ArticleSlideProps {
 
 export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
 
-  // Get background color based on article type
+  // Listen for theme changes
+  useEffect(() => {
+    // Set initial theme
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setTheme(isDark ? 'dark' : 'light')
+    }
+
+    checkTheme()
+
+    // Watch for theme changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      checkTheme()
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Get background color based on article type and theme
   const getBackgroundColor = () => {
-    switch (article.articleType) {
-      case 'meditation':
-        return '#250902'
-      case 'education':
-        return '#38040e'
-      case 'personal':
-        return '#640d14'
-      case 'spiritual':
-        return '#333333'
-      case 'routine':
-        return '#800e13'
-      default:
-        return '#ad2831' // Not Set or null
+    // Return appropriate colors based on theme
+    if (theme === 'dark') {
+      // Dark mode colors (current colors)
+      switch (article.articleType) {
+        case 'meditation':
+          return '#250902' // Very dark brown
+        case 'education':
+          return '#38040e' // Dark burgundy
+        case 'personal':
+          return '#640d14' // Deep red
+        case 'spiritual':
+          return '#333333' // Dark gray
+        case 'routine':
+          return '#800e13' // Crimson
+        default:
+          return '#ad2831' // Bright red (Not Set or null)
+      }
+    } else {
+      // Light mode colors (inverted/lighter versions)
+      switch (article.articleType) {
+        case 'meditation':
+          return '#f0e6e0' // Very light brown
+        case 'education':
+          return '#f5e0e5' // Light pink
+        case 'personal':
+          return '#fde2e4' // Very light rose
+        case 'spiritual':
+          return '#e8e8e8' // Light gray
+        case 'routine':
+          return '#ffd7db' // Light salmon
+        default:
+          return '#ffc9cc' // Light coral (Not Set or null)
+      }
     }
   }
 
