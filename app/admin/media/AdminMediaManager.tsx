@@ -94,7 +94,7 @@ export default function AdminMediaManager() {
     for (const file of Array.from(files)) {
       const formData = new FormData()
       formData.append('file', file)
-      if (selectedFolderId) {
+      if (selectedFolderId && selectedFolderId !== 'no-folder') {
         formData.append('folderId', selectedFolderId)
       }
 
@@ -193,6 +193,12 @@ export default function AdminMediaManager() {
     ))
   }
 
+  const filteredMedia = selectedFolderId === ''
+    ? media
+    : selectedFolderId === 'no-folder'
+    ? media.filter(file => !file.folderId)
+    : media.filter(file => file.folderId === selectedFolderId)
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -232,20 +238,21 @@ export default function AdminMediaManager() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Upload to Folder:
+              Select Folder:
             </label>
             <select
               value={selectedFolderId}
               onChange={(e) => setSelectedFolderId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="">Default (Date-based)</option>
+              <option value="">All Files (uploads to date-based)</option>
+              <option value="no-folder">No Folder (date-based files only)</option>
               {renderFolderOptions()}
             </select>
           </div>
           <div className="flex items-end">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {folders.length} folder{folders.length !== 1 ? 's' : ''} available
+              {filteredMedia.length} of {media.length} file{media.length !== 1 ? 's' : ''} shown
             </div>
           </div>
         </div>
@@ -338,9 +345,13 @@ export default function AdminMediaManager() {
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">No media files uploaded yet</p>
         </div>
+      ) : filteredMedia.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400">No files found in selected folder</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {media.map((file) => (
+          {filteredMedia.map((file) => (
             <div
               key={file.id}
               className={`border rounded-lg p-4 ${
