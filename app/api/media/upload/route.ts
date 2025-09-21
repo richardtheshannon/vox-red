@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from 'uuid'
 import mime from 'mime-types'
 
 // Use UPLOAD_PATH env var if set (for Railway persistent volumes), otherwise use defaults
-const UPLOAD_DIR = process.env.UPLOAD_PATH || (process.env.NODE_ENV === 'production' ? '/app/uploads' : './uploads')
+// In production, fallback to /tmp if /app/uploads is not writable
+const UPLOAD_DIR = process.env.UPLOAD_PATH || (process.env.NODE_ENV === 'production' ? '/tmp/uploads' : './uploads')
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const ALLOWED_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg', 'audio/x-mp3']
 

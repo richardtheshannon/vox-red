@@ -49,11 +49,8 @@ COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY --from=builder /app/start.sh ./start.sh
 RUN chmod +x start.sh
 
-# Create uploads directory with write permissions for nextjs user
-# The nextjs user needs to be able to create subdirectories at runtime
-RUN mkdir -p /app/uploads/audio \
-    && chown -R nextjs:nodejs /app/uploads \
-    && chmod -R 775 /app/uploads
+# Note: Upload directory will be created at runtime in /tmp or via UPLOAD_PATH env var
+# /tmp is always writable in containers, making it a safe fallback
 
 USER nextjs
 
