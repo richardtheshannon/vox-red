@@ -53,6 +53,9 @@ export default function AdminMediaManager() {
   const [showCreateFolder, setShowCreateFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [newFolderParent, setNewFolderParent] = useState('')
+  const [sortField, setSortField] = useState<'filename' | 'size' | 'createdAt' | 'folder'>('createdAt')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -193,11 +196,94 @@ export default function AdminMediaManager() {
     ))
   }
 
+  const handleCopyUrl = async (url: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000) // Reset after 2 seconds
+    } catch (error) {
+      console.error('Failed to copy URL:', error)
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = url
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        setCopiedId(id)
+        setTimeout(() => setCopiedId(null), 2000)
+      } catch (fallbackError) {
+        console.error('Fallback copy failed:', fallbackError)
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
   const filteredMedia = selectedFolderId === ''
     ? media
     : selectedFolderId === 'no-folder'
     ? media.filter(file => !file.folderId)
     : media.filter(file => file.folderId === selectedFolderId)
+
+  const handleSort = (field: 'filename' | 'size' | 'createdAt' | 'folder') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const sortedMedia = [...filteredMedia].sort((a, b) => {
+    let aValue: string | number
+    let bValue: string | number
+
+    switch (sortField) {
+      case 'filename':
+        aValue = a.filename.toLowerCase()
+        bValue = b.filename.toLowerCase()
+        break
+      case 'size':
+        aValue = a.size
+        bValue = b.size
+        break
+      case 'createdAt':
+        aValue = new Date(a.createdAt).getTime()
+        bValue = new Date(b.createdAt).getTime()
+        break
+      case 'folder':
+        aValue = a.folder?.name?.toLowerCase() || ''
+        bValue = b.folder?.name?.toLowerCase() || ''
+        break
+      default:
+        return 0
+    }
+
+    if (sortDirection === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+    }
+  })
+
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return (
+        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      )
+    }
+    return sortDirection === 'asc' ? (
+      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -336,7 +422,7 @@ export default function AdminMediaManager() {
         </div>
       )}
 
-      {/* Media Grid */}
+      {/* Media Content */}
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
@@ -350,80 +436,233 @@ export default function AdminMediaManager() {
           <p className="text-gray-500 dark:text-gray-400">No files found in selected folder</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredMedia.map((file) => (
-            <div
-              key={file.id}
-              className={`border rounded-lg p-4 ${
-                selectedFiles.has(file.id)
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-              }`}
-            >
-              {/* File Icon */}
-              <div className="flex justify-center mb-4">
-                <svg
-                  className="w-16 h-16 text-gray-400 dark:text-gray-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-                </svg>
-              </div>
-
-              {/* File Info */}
-              <div className="space-y-2">
-                <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" title={file.filename}>
-                  {file.filename}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatBytes(file.size)}
-                </p>
-                {file.folder && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Folder: {file.folder.name}
-                  </p>
-                )}
-                {file.articles.length > 0 && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    Used in {file.articles.length} article{file.articles.length > 1 ? 's' : ''}
-                  </p>
-                )}
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  {new Date(file.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => handlePreview(file.url)}
-                  className="flex-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Preview
-                </button>
-                <button
-                  onClick={() => toggleSelection(file.id)}
-                  className="flex-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                >
-                  {selectedFiles.has(file.id) ? 'Deselect' : 'Select'}
-                </button>
-                <button
-                  onClick={() => handleDelete(file.id)}
-                  disabled={file.articles.length > 0}
-                  className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
-                    file.articles.length > 0
-                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                      : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
-                  }`}
-                  title={file.articles.length > 0 ? 'Cannot delete: File is in use' : 'Delete file'}
-                >
-                  Delete
-                </button>
-              </div>
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                      <button
+                        onClick={() => handleSort('filename')}
+                        className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400"
+                      >
+                        File Name
+                        {getSortIcon('filename')}
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                      <button
+                        onClick={() => handleSort('size')}
+                        className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400"
+                      >
+                        Size
+                        {getSortIcon('size')}
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                      <button
+                        onClick={() => handleSort('folder')}
+                        className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400"
+                      >
+                        Folder
+                        {getSortIcon('folder')}
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Usage</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                      <button
+                        onClick={() => handleSort('createdAt')}
+                        className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400"
+                      >
+                        Created
+                        {getSortIcon('createdAt')}
+                      </button>
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedMedia.map((file) => (
+                    <tr
+                      key={file.id}
+                      className={`border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                        selectedFiles.has(file.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <svg
+                            className="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                          </svg>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={file.filename}>
+                              {file.filename}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {file.mimeType}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        {formatBytes(file.size)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        {file.folder ? file.folder.name : 'Date-based'}
+                      </td>
+                      <td className="py-3 px-4">
+                        {file.articles.length > 0 ? (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
+                            {file.articles.length} article{file.articles.length > 1 ? 's' : ''}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                            Unused
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        {new Date(file.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePreview(file.url)}
+                            className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          >
+                            Preview
+                          </button>
+                          <button
+                            onClick={() => handleCopyUrl(file.url, file.id)}
+                            className={`px-3 py-1 text-xs rounded transition-colors ${
+                              copiedId === file.id
+                                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800'
+                            }`}
+                          >
+                            {copiedId === file.id ? 'Copied!' : 'Copy'}
+                          </button>
+                          <button
+                            onClick={() => toggleSelection(file.id)}
+                            className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                          >
+                            {selectedFiles.has(file.id) ? 'Deselect' : 'Select'}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(file.id)}
+                            disabled={file.articles.length > 0}
+                            className={`px-3 py-1 text-xs rounded transition-colors ${
+                              file.articles.length > 0
+                                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
+                            }`}
+                            title={file.articles.length > 0 ? 'Cannot delete: File is in use' : 'Delete file'}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-1 gap-4">
+              {sortedMedia.map((file) => (
+                <div
+                  key={file.id}
+                  className={`border rounded-lg p-4 ${
+                    selectedFiles.has(file.id)
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                  }`}
+                >
+                  {/* File Icon */}
+                  <div className="flex justify-center mb-4">
+                    <svg
+                      className="w-16 h-16 text-gray-400 dark:text-gray-500"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                    </svg>
+                  </div>
+
+                  {/* File Info */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" title={file.filename}>
+                      {file.filename}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formatBytes(file.size)}
+                    </p>
+                    {file.folder && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Folder: {file.folder.name}
+                      </p>
+                    )}
+                    {file.articles.length > 0 && (
+                      <p className="text-xs text-green-600 dark:text-green-400">
+                        Used in {file.articles.length} article{file.articles.length > 1 ? 's' : ''}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                      {new Date(file.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => handlePreview(file.url)}
+                      className="flex-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Preview
+                    </button>
+                    <button
+                      onClick={() => handleCopyUrl(file.url, file.id)}
+                      className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
+                        copiedId === file.id
+                          ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                          : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800'
+                      }`}
+                    >
+                      {copiedId === file.id ? 'Copied!' : 'Copy'}
+                    </button>
+                    <button
+                      onClick={() => toggleSelection(file.id)}
+                      className="flex-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                    >
+                      {selectedFiles.has(file.id) ? 'Deselect' : 'Select'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(file.id)}
+                      disabled={file.articles.length > 0}
+                      className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
+                        file.articles.length > 0
+                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                          : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
+                      }`}
+                      title={file.articles.length > 0 ? 'Cannot delete: File is in use' : 'Delete file'}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
