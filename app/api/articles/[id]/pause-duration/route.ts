@@ -39,7 +39,7 @@ export async function PATCH(
 
     // Trigger real-time update
     const encoder = new TextEncoder();
-    const customEvent = new ReadableStream({
+    new ReadableStream({
       start(controller) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'article-updated', id: updatedArticle.id })}\n\n`));
         controller.close();

@@ -27,17 +27,18 @@ export async function POST(request: NextRequest) {
     const audioDir = path.join(UPLOAD_DIR, 'audio')
     try {
       await fs.mkdir(audioDir, { recursive: true })
-    } catch (mkdirError: any) {
-      console.error('Directory creation error:', mkdirError)
+    } catch (mkdirError) {
+      const error = mkdirError as NodeJS.ErrnoException
+      console.error('Directory creation error:', error)
       // If directory exists, that's okay
-      if (mkdirError.code !== 'EEXIST') {
+      if (error.code !== 'EEXIST') {
         return NextResponse.json(
           {
-            error: `Unable to create upload directory: ${mkdirError.message}`,
+            error: `Unable to create upload directory: ${error.message}`,
             details: {
               uploadDir: UPLOAD_DIR,
               audioDir: audioDir,
-              code: mkdirError.code
+              code: error.code
             }
           },
           { status: 500 }
@@ -98,15 +99,16 @@ export async function POST(request: NextRequest) {
       const folderPath = path.join(audioDir, folder.path)
       try {
         await fs.mkdir(folderPath, { recursive: true })
-      } catch (mkdirError: any) {
-        console.error('Folder directory creation error:', mkdirError)
-        if (mkdirError.code !== 'EEXIST') {
+      } catch (mkdirError) {
+        const error = mkdirError as NodeJS.ErrnoException
+        console.error('Folder directory creation error:', error)
+        if (error.code !== 'EEXIST') {
           return NextResponse.json(
             {
-              error: `Unable to create folder directory: ${mkdirError.message}`,
+              error: `Unable to create folder directory: ${error.message}`,
               details: {
                 folderPath: folderPath,
-                code: mkdirError.code
+                code: error.code
               }
             },
             { status: 500 }
@@ -122,15 +124,16 @@ export async function POST(request: NextRequest) {
       const datePath = path.join(audioDir, year.toString(), month)
       try {
         await fs.mkdir(datePath, { recursive: true })
-      } catch (mkdirError: any) {
-        console.error('Date directory creation error:', mkdirError)
-        if (mkdirError.code !== 'EEXIST') {
+      } catch (mkdirError) {
+        const error = mkdirError as NodeJS.ErrnoException
+        console.error('Date directory creation error:', error)
+        if (error.code !== 'EEXIST') {
           return NextResponse.json(
             {
-              error: `Unable to create date directory: ${mkdirError.message}`,
+              error: `Unable to create date directory: ${error.message}`,
               details: {
                 datePath: datePath,
-                code: mkdirError.code
+                code: error.code
               }
             },
             { status: 500 }
