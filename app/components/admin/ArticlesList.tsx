@@ -321,6 +321,28 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  const handleRandomizeRow = async (id: string) => {
+    if (!confirm('Are you sure you want to randomize the order of all sub-articles in this row? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/articles/${id}/randomize-row`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to randomize row')
+      }
+
+      const result = await response.json()
+      console.log(result.message)
+      router.refresh()
+    } catch (error) {
+      console.error('Error randomizing row:', error)
+    }
+  }
+
   const getTypeColor = (type: string | null | undefined) => {
     switch (type) {
       case 'meditation':
@@ -436,6 +458,17 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                             {article.isFavorite ? 'star' : 'star_outline'}
                           </span>
                         </button>
+                        {!article.parentId && article.subArticles && article.subArticles.length > 1 && (
+                          <button
+                            onClick={() => handleRandomizeRow(article.id)}
+                            className="p-1 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            title="Randomize order of sub-articles in this row"
+                          >
+                            <span className="material-icons text-xl">
+                              shuffle
+                            </span>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDuplicate(article.id, false)}
                           className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
