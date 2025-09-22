@@ -17,6 +17,7 @@ interface Article {
   published?: boolean
   isProject?: boolean
   isFavorite?: boolean
+  temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
   publishTimeStart?: string | null
@@ -450,9 +451,19 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         <button
                           onClick={() => handleFavoriteToggle(article.id, article.isFavorite || false)}
                           className={`p-1 transition-colors ${
-                            article.isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'
+                            article.isFavorite
+                              ? article.temporarilyUnpublished
+                                ? 'text-gray-500 hover:text-gray-600'
+                                : 'text-yellow-500 hover:text-yellow-600'
+                              : 'text-gray-400 hover:text-yellow-500'
                           }`}
-                          title={article.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                          title={
+                            article.isFavorite
+                              ? article.temporarilyUnpublished
+                                ? 'Remove from favorites (currently temporarily unpublished)'
+                                : 'Remove from favorites'
+                              : 'Add to favorites'
+                          }
                         >
                           <span className="material-icons text-xl">
                             {article.isFavorite ? 'star' : 'star_outline'}
@@ -595,9 +606,19 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                                           <button
                                             onClick={() => handleFavoriteToggle(subArticle.id, subArticle.isFavorite || false)}
                                             className={`p-1 transition-colors ${
-                                              subArticle.isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'
+                                              subArticle.isFavorite
+                                                ? subArticle.temporarilyUnpublished
+                                                  ? 'text-gray-500 hover:text-gray-600'
+                                                  : 'text-yellow-500 hover:text-yellow-600'
+                                                : 'text-gray-400 hover:text-yellow-500'
                                             }`}
-                                            title={subArticle.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                            title={
+                                              subArticle.isFavorite
+                                                ? subArticle.temporarilyUnpublished
+                                                  ? 'Remove from favorites (currently temporarily unpublished)'
+                                                  : 'Remove from favorites'
+                                                : 'Add to favorites'
+                                            }
                                           >
                                             <span className="material-icons text-lg">
                                               {subArticle.isFavorite ? 'star' : 'star_outline'}

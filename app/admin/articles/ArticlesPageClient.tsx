@@ -17,6 +17,7 @@ type ArticleListItem = {
   published: boolean
   isProject: boolean
   isFavorite?: boolean
+  temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
   subArticles: {
@@ -29,6 +30,7 @@ type ArticleListItem = {
     published: boolean
     isProject: boolean
     isFavorite?: boolean
+    temporarilyUnpublished?: boolean
     articleType?: string | null
     pauseDuration?: number | null
   }[]

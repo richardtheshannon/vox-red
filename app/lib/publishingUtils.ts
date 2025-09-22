@@ -5,6 +5,7 @@
 interface Article {
   published: boolean
   isProject: boolean
+  temporarilyUnpublished?: boolean
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
@@ -71,7 +72,12 @@ export function isAllowedDay(publishDays?: string | null): boolean {
  * Both standard and project articles can use time-based publishing
  */
 export function shouldShowArticle(article: Article): boolean {
-  // Must be published first
+  // Check if temporarily unpublished first (highest priority filter)
+  if (article.temporarilyUnpublished) {
+    return false
+  }
+
+  // Must be published
   if (!article.published) {
     return false
   }

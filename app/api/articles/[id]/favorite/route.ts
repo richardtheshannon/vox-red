@@ -21,9 +21,20 @@ export async function PATCH(
     const body = await request.json()
     const { isFavorite } = body
 
+    // When unfavoriting (isFavorite = false), also clear temporary unpublish status
+    const updateData: { isFavorite: boolean; temporarilyUnpublished?: boolean; unpublishedDate?: null } = {
+      isFavorite
+    }
+
+    if (!isFavorite) {
+      // Clear temporary unpublish status when removing from favorites
+      updateData.temporarilyUnpublished = false
+      updateData.unpublishedDate = null
+    }
+
     const updatedArticle = await prisma.article.update({
       where: { id },
-      data: { isFavorite },
+      data: updateData,
     })
 
     sseManager.notifyArticleChange('updated', id)

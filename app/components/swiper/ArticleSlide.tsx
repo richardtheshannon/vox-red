@@ -146,8 +146,8 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
       })
 
       if (response.ok) {
-        // Refresh the page to show changes
-        router.refresh()
+        // SSE will handle the live update automatically
+        console.log('Article temporarily unpublished, SSE will update the view')
       } else {
         console.error('Failed to toggle unpublish status')
       }
