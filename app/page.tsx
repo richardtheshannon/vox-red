@@ -62,17 +62,18 @@ export default async function Home() {
 
   // Basic server-side filtering for published state and temporary unpublishing (no time/day filtering here)
   const publishedArticles = allMainArticles.filter(article => {
-    // Skip articles that are temporarily unpublished
-    if (article.temporarilyUnpublished) {
-      return false
-    }
+    // Show the row if main article is published and not temporarily unpublished
+    const mainArticleVisible = article.published && !article.temporarilyUnpublished
 
-    // For projects: show if main article is published OR has published sub-articles
+    // Show the row if it has published sub-articles (even if main article is temporarily unpublished)
+    const hasPublishedSubArticles = article.subArticles && article.subArticles.length > 0
+
+    // For projects: show if main article is visible OR has published sub-articles
     if (article.isProject) {
-      return article.published || article.subArticles.length > 0
+      return mainArticleVisible || hasPublishedSubArticles
     }
-    // For standard articles: show if main article is published OR has published sub-articles
-    return article.published || article.subArticles.length > 0
+    // For standard articles: show if main article is visible OR has published sub-articles
+    return mainArticleVisible || hasPublishedSubArticles
   })
 
   return (

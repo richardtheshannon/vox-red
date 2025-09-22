@@ -22,6 +22,8 @@ interface Article {
   verticalAlign?: string
   parentId?: string | null
   subArticles?: Article[]
+  published: boolean
+  isProject: boolean
   isFavorite?: boolean
   temporarilyUnpublished?: boolean
   articleType?: string | null

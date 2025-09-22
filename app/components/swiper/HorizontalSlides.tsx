@@ -6,6 +6,7 @@ import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import AutoRowPlayButton from '../AutoRowPlayButton'
+import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -21,12 +22,15 @@ interface Article {
   verticalAlign?: string
   parentId?: string | null
   subArticles?: Article[]
-  isProject?: boolean
-  published?: boolean
+  isProject: boolean
+  published: boolean
   isFavorite?: boolean
   temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
+  publishTimeStart?: string | null
+  publishTimeEnd?: string | null
+  publishDays?: string | null
 }
 
 interface HorizontalSlidesProps {
@@ -71,15 +75,15 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
   }, [visibleSlides])
 
   useEffect(() => {
-    // Initialize visible slides - only show published articles
+    // Initialize visible slides - only show articles that pass shouldShowArticle check
     if (mainArticle.isProject) {
       const slides = []
-      if (mainArticle.published) {
+      if (shouldShowArticle(mainArticle)) {
         slides.push(mainArticle)
       }
-      // Always add published sub-articles
-      const publishedSubArticles = subArticles.filter(sub => sub.published)
-      slides.push(...publishedSubArticles)
+      // Add sub-articles that pass visibility checks
+      const visibleSubArticles = subArticles.filter(sub => shouldShowArticle(sub))
+      slides.push(...visibleSubArticles)
       setVisibleSlides(slides)
 
       // Check if project is completed (no visible slides at all)
@@ -87,14 +91,14 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         setIsCompleted(true)
       }
     } else {
-      // Non-project articles show only published slides
+      // Non-project articles show slides that pass visibility checks
       const slides = []
-      if (mainArticle.published) {
+      if (shouldShowArticle(mainArticle)) {
         slides.push(mainArticle)
       }
-      // Add published sub-articles
-      const publishedSubArticles = subArticles.filter(sub => sub.published)
-      slides.push(...publishedSubArticles)
+      // Add sub-articles that pass visibility checks
+      const visibleSubArticles = subArticles.filter(sub => shouldShowArticle(sub))
+      slides.push(...visibleSubArticles)
       setVisibleSlides(slides)
     }
   }, [mainArticle, subArticles])
