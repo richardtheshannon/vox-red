@@ -31,6 +31,7 @@ interface Article {
   published: boolean
   isProject: boolean
   isFavorite?: boolean
+  temporarilyUnpublished?: boolean
   pauseDuration?: number | null
   publishTimeStart?: string | null
   publishTimeEnd?: string | null

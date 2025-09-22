@@ -16,6 +16,7 @@ interface ArticleSlideProps {
     verticalAlign?: string
     isProject?: boolean
     isFavorite?: boolean
+    temporarilyUnpublished?: boolean
     parentId?: string | null
     articleType?: string | null
   }
@@ -26,6 +27,7 @@ interface ArticleSlideProps {
 export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [isUnpublishing, setIsUnpublishing] = useState(false)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
@@ -126,6 +128,36 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
     }
   }
 
+  const handleStarClick = async () => {
+    if (isUnpublishing) return
+
+    // Show confirmation dialog
+    const action = article.temporarilyUnpublished ? 'republish' : 'temporarily unpublish'
+    const confirmed = confirm(`Are you sure you want to ${action} this article for the rest of the day?`)
+    if (!confirmed) return
+
+    setIsUnpublishing(true)
+    try {
+      const response = await fetch(`/api/articles/${article.id}/temporarily-unpublish`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Refresh the page to show changes
+        router.refresh()
+      } else {
+        console.error('Failed to toggle unpublish status')
+      }
+    } catch (error) {
+      console.error('Error toggling unpublish status:', error)
+    } finally {
+      setIsUnpublishing(false)
+    }
+  }
+
   const handleComplete = async () => {
     if (loading) return
 
@@ -186,12 +218,30 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
           right: '15px'
         }}
       >
-        {/* Favorite star icon - fixed in top-left corner of article-scroll */}
+        {/* Favorite star icon - fixed in top-left corner of article-scroll, clickable */}
         {article.isFavorite && (
           <div className="fixed top-24 left-6 z-40">
-            <span className="material-icons text-3xl text-gray-900 dark:text-gray-100">
-              star
-            </span>
+            <button
+              onClick={handleStarClick}
+              disabled={isUnpublishing}
+              className="transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded p-1"
+              aria-label={article.temporarilyUnpublished ? 'Republish article' : 'Temporarily unpublish article'}
+              title={article.temporarilyUnpublished ? 'Click to republish for the rest of the day' : 'Click to hide for the rest of the day'}
+            >
+              {isUnpublishing ? (
+                <span className="material-icons text-3xl text-gray-500 animate-pulse">
+                  hourglass_empty
+                </span>
+              ) : (
+                <span className={`material-icons text-3xl transition-colors ${
+                  article.temporarilyUnpublished
+                    ? 'text-gray-500 dark:text-gray-600'
+                    : 'text-yellow-500 hover:text-yellow-600'
+                }`}>
+                  star
+                </span>
+              )}
+            </button>
           </div>
         )}
         <div className={`flex flex-col ${getVerticalAlignClasses()} min-h-full`}>

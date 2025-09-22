@@ -36,6 +36,8 @@ model Article {
   published        Boolean   @default(true) // false for unpublished/completed slides
   isProject        Boolean   @default(false) @map("is_project") // true for imported markdown projects
   isFavorite       Boolean   @default(false) @map("is_favorite") // true for favorite/starred articles
+  temporarilyUnpublished Boolean @default(false) @map("temporarily_unpublished") // true when star clicked on frontend
+  unpublishedDate  DateTime? @map("unpublished_date") // when it was temporarily unpublished
   articleType      String?   @map("article_type") @db.VarChar(50) // Type of article: meditation, education, personal, spiritual, routine
   pauseDuration    Int?      @map("pause_duration") // Seconds to pause between MP3s in auto-row-play (5, 10, 15, 30)
   publishTimeStart String?   @map("publish_time_start") @db.VarChar(5) // "HH:MM" format for time-based publishing

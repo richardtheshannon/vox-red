@@ -6,8 +6,9 @@ export async function middleware(request: NextRequest) {
   const session = await auth()
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
   const isLoginPage = request.nextUrl.pathname === '/admin/login'
-  const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/articles') && 
-    request.method !== 'GET'
+  const isResetEndpoint = request.nextUrl.pathname === '/api/articles/reset-temporary-unpublish'
+  const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/articles') &&
+    request.method !== 'GET' && !isResetEndpoint
 
   if (isAdminRoute && !isLoginPage && !session) {
     return NextResponse.redirect(new URL('/admin/login', request.url))

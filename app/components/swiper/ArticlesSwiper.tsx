@@ -23,6 +23,7 @@ interface Article {
   parentId?: string | null
   subArticles?: Article[]
   isFavorite?: boolean
+  temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
 }

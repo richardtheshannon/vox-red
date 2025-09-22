@@ -12,7 +12,27 @@ export default async function Home() {
       parentId: null, // Only get main articles (not sub-articles)
     },
     orderBy: { orderPosition: 'asc' },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      subtitle: true,
+      content: true,
+      audioUrl: true,
+      orderPosition: true,
+      textAlign: true,
+      verticalAlign: true,
+      parentId: true,
+      published: true,
+      isProject: true,
+      isFavorite: true,
+      temporarilyUnpublished: true,
+      pauseDuration: true,
+      publishTimeStart: true,
+      publishTimeEnd: true,
+      publishDays: true,
+      articleType: true,
+      createdAt: true,
+      updatedAt: true,
       subArticles: {
         where: { published: true }, // Only include published sub-articles
         orderBy: { orderPosition: 'asc' },
@@ -29,6 +49,7 @@ export default async function Home() {
           published: true,
           isProject: true,
           isFavorite: true,
+          temporarilyUnpublished: true,
           pauseDuration: true,
           publishTimeStart: true,
           publishTimeEnd: true,
@@ -39,8 +60,13 @@ export default async function Home() {
     }
   })
 
-  // Basic server-side filtering for published state only (no time/day filtering here)
+  // Basic server-side filtering for published state and temporary unpublishing (no time/day filtering here)
   const publishedArticles = allMainArticles.filter(article => {
+    // Skip articles that are temporarily unpublished
+    if (article.temporarilyUnpublished) {
+      return false
+    }
+
     // For projects: show if main article is published OR has published sub-articles
     if (article.isProject) {
       return article.published || article.subArticles.length > 0
