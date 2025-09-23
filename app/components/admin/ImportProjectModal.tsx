@@ -14,6 +14,7 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
   const [preview, setPreview] = useState<ParsedSection[]>([])
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const [mp3BaseUrl, setMp3BaseUrl] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!isOpen) return null
@@ -61,7 +62,10 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ markdown: content }),
+        body: JSON.stringify({
+          markdown: content,
+          mp3BaseUrl: mp3BaseUrl.trim() || undefined
+        }),
       })
 
       const data = await response.json()
@@ -84,6 +88,7 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
     setFile(null)
     setPreview([])
     setError('')
+    setMp3BaseUrl('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -127,6 +132,25 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
             )}
           </div>
 
+          {/* MP3 Base URL Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              MP3 Base URL (optional)
+            </label>
+            <input
+              type="text"
+              value={mp3BaseUrl}
+              onChange={(e) => setMp3BaseUrl(e.target.value)}
+              placeholder="https://vox.red/mp3/my-project"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
+                bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              If provided, articles will be automatically linked to sequential MP3 files: 0001.mp3, 0002.mp3, etc.
+            </p>
+          </div>
+
           {/* Error Display */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -163,6 +187,18 @@ export default function ImportProjectModal({ isOpen, onClose, onSuccess }: Impor
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
                 Total: 1 main slide + {preview.length - 1} sub-slide{preview.length - 1 !== 1 ? 's' : ''}
               </p>
+              {mp3BaseUrl.trim() && (
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h4 className="text-sm font-medium text-green-800 dark:text-green-400 mb-2">MP3 URLs will be generated:</h4>
+                  <div className="space-y-1 text-xs text-green-700 dark:text-green-300">
+                    {preview.map((section, index) => (
+                      <div key={index}>
+                        <span className="font-medium">{section.title}:</span> {mp3BaseUrl.replace(/\/$/, '')}/{String(index + 1).padStart(4, '0')}.mp3
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

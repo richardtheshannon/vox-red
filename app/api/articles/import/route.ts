@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get the markdown content from the request
-    const { markdown } = await request.json()
+    // Get the markdown content and optional MP3 base URL from the request
+    const { markdown, mp3BaseUrl } = await request.json()
 
     if (!markdown || typeof markdown !== 'string') {
       return NextResponse.json(
@@ -71,6 +71,30 @@ export async function POST(request: NextRequest) {
 
     const nextMainPosition = (maxMainPosition._max.orderPosition ?? -1) + 1
 
+    // Validate and prepare MP3 base URL if provided
+    let validatedMp3BaseUrl: string | null = null
+    if (mp3BaseUrl && typeof mp3BaseUrl === 'string') {
+      const trimmedUrl = mp3BaseUrl.trim()
+      if (trimmedUrl) {
+        try {
+          // Validate URL format
+          new URL(trimmedUrl)
+          // Remove trailing slash for consistency
+          validatedMp3BaseUrl = trimmedUrl.replace(/\/$/, '')
+        } catch {
+          // Invalid URL format - continue without MP3 URLs
+          console.warn('Invalid MP3 base URL provided, skipping MP3 URL generation')
+        }
+      }
+    }
+
+    // Generate MP3 URL for a given article index
+    const generateMp3Url = (index: number): string | null => {
+      if (!validatedMp3BaseUrl) return null
+      const paddedNumber = String(index + 1).padStart(4, '0')
+      return `${validatedMp3BaseUrl}/${paddedNumber}.mp3`
+    }
+
     // Create all articles in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create the parent article (first section)
@@ -79,6 +103,7 @@ export async function POST(request: NextRequest) {
         data: {
           title: parentSection.title,
           content: parentSection.content,
+          audioUrl: generateMp3Url(0), // First MP3 (0001.mp3)
           orderPosition: nextMainPosition,
           textAlign: 'left',
           verticalAlign: 'center',
@@ -95,6 +120,7 @@ export async function POST(request: NextRequest) {
           data: {
             title: section.title,
             content: section.content,
+            audioUrl: generateMp3Url(i), // Sequential MP3 (0002.mp3, 0003.mp3, etc.)
             orderPosition: i - 1, // Start from 0 for sub-articles
             parentId: parentArticle.id,
             textAlign: 'left',
