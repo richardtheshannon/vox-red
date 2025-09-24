@@ -32,6 +32,22 @@ export const articleSchema = z.object({
     (val) => val === '' || val === 'none' ? null : val,
     z.enum(['meditation', 'education', 'personal', 'spiritual', 'routine']).nullable().optional()
   ),
+  rowBackgroundColor: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().regex(/^#[0-9A-F]{6}$/i).nullable().optional()
+  ),
+  rowPublishTimeStart: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()
+  ),
+  rowPublishTimeEnd: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()
+  ),
+  rowPublishDays: z.preprocess(
+    (val) => val === '' ? null : val,
+    z.string().max(200).nullable().optional()
+  ),
   publishTimeStart: z.preprocess(
     (val) => val === '' ? null : val,
     z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).nullable().optional()

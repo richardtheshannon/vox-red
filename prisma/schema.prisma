@@ -40,6 +40,10 @@ model Article {
   unpublishedDate  DateTime? @map("unpublished_date") // when it was temporarily unpublished
   articleType      String?   @map("article_type") @db.VarChar(50) // Type of article: meditation, education, personal, spiritual, routine
   pauseDuration    Int?      @map("pause_duration") // Seconds to pause between MP3s in auto-row-play (5, 10, 15, 30)
+  rowBackgroundColor String? @map("row_background_color") @db.VarChar(7) // Hex color code for row background in admin (main articles only)
+  rowPublishTimeStart String? @map("row_publish_time_start") @db.VarChar(5) // "HH:MM" format for row-level time-based publishing
+  rowPublishTimeEnd   String? @map("row_publish_time_end") @db.VarChar(5) // "HH:MM" format for row-level time-based publishing
+  rowPublishDays      String? @map("row_publish_days") @db.VarChar(200) // JSON array of days or "all" for row-level publishing
   publishTimeStart String?   @map("publish_time_start") @db.VarChar(5) // "HH:MM" format for time-based publishing
   publishTimeEnd   String?   @map("publish_time_end") @db.VarChar(5) // "HH:MM" format for time-based publishing
   publishDays      String?   @map("publish_days") @db.VarChar(200) // JSON array of days or "all"

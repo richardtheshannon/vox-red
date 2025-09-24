@@ -14,6 +14,9 @@ export default async function EditArticlePage({
   
   const article = await prisma.article.findUnique({
     where: { id },
+    include: {
+      media: true,
+    },
   })
 
   if (!article) {

@@ -20,6 +20,10 @@ type ArticleListItem = {
   temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
+  rowBackgroundColor?: string | null
+  rowPublishTimeStart?: string | null
+  rowPublishTimeEnd?: string | null
+  rowPublishDays?: string | null
   subArticles: {
     id: string
     title: string
@@ -33,6 +37,10 @@ type ArticleListItem = {
     temporarilyUnpublished?: boolean
     articleType?: string | null
     pauseDuration?: number | null
+    rowBackgroundColor?: string | null
+    rowPublishTimeStart?: string | null
+    rowPublishTimeEnd?: string | null
+    rowPublishDays?: string | null
   }[]
 }
 

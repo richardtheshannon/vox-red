@@ -22,6 +22,10 @@ interface ArticleFormProps {
     verticalAlign?: string
     parentId?: string | null
     isProject?: boolean
+    rowBackgroundColor?: string | null
+    rowPublishTimeStart?: string | null
+    rowPublishTimeEnd?: string | null
+    rowPublishDays?: string | null
     publishTimeStart?: string | null
     publishTimeEnd?: string | null
     publishDays?: string | null
@@ -43,6 +47,20 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
   const [textAlign, setTextAlign] = useState(article?.textAlign || 'left')
   const [verticalAlign, setVerticalAlign] = useState(article?.verticalAlign || 'center')
   const [parentId, setParentId] = useState<string | null>(article?.parentId || null)
+  const [rowBackgroundColor, setRowBackgroundColor] = useState(article?.rowBackgroundColor || '')
+  const [rowPublishTimeStart, setRowPublishTimeStart] = useState(article?.rowPublishTimeStart || '')
+  const [rowPublishTimeEnd, setRowPublishTimeEnd] = useState(article?.rowPublishTimeEnd || '')
+  const [rowPublishDays, setRowPublishDays] = useState(article?.rowPublishDays || '')
+  const [rowSelectedDays, setRowSelectedDays] = useState<string[]>(() => {
+    if (article?.rowPublishDays && article.rowPublishDays !== 'all') {
+      try {
+        return JSON.parse(article.rowPublishDays)
+      } catch {
+        return []
+      }
+    }
+    return []
+  })
   const [publishTimeStart, setPublishTimeStart] = useState(article?.publishTimeStart || '')
   const [publishTimeEnd, setPublishTimeEnd] = useState(article?.publishTimeEnd || '')
   const [publishDays, setPublishDays] = useState(article?.publishDays || '')
@@ -99,6 +117,111 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
 
       setSelectedDays(newDays)
       setPublishDays(newDays.length === 0 ? 'all' : JSON.stringify(newDays))
+    }
+  }
+
+  // Handle row background color change (for main articles only)
+  const handleRowBackgroundColorChange = async (color: string) => {
+    if (article && !article.parentId) { // Only for main articles
+      try {
+        const response = await fetch(`/api/articles/${article.id}/row-background-color`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ rowBackgroundColor: color || null }),
+        })
+
+        if (response.ok) {
+          setRowBackgroundColor(color)
+        }
+      } catch (error) {
+        console.error('Error updating row background color:', error)
+      }
+    }
+  }
+
+  // Handle row day selection changes
+  const handleRowDayChange = async (value: string) => {
+    if (!article || article.parentId) return // Only for main articles
+
+    let newDays: string[]
+    let newPublishDays: string
+
+    if (value === 'all') {
+      newDays = []
+      newPublishDays = 'all'
+    } else {
+      newDays = rowSelectedDays.includes(value)
+        ? rowSelectedDays.filter(day => day !== value)
+        : [...rowSelectedDays, value]
+      newPublishDays = newDays.length === 0 ? 'all' : JSON.stringify(newDays)
+    }
+
+    setRowSelectedDays(newDays)
+    setRowPublishDays(newPublishDays)
+
+    try {
+      const response = await fetch(`/api/articles/${article.id}/row-publishing`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rowPublishTimeStart: rowPublishTimeStart || null,
+          rowPublishTimeEnd: rowPublishTimeEnd || null,
+          rowPublishDays: newPublishDays || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update row publishing settings')
+      }
+    } catch (error) {
+      console.error('Error updating row day settings:', error)
+      // Revert on error
+      setRowSelectedDays(rowSelectedDays)
+      setRowPublishDays(rowPublishDays)
+    }
+  }
+
+  // Handle row time changes
+  const handleRowTimeChange = async (field: 'start' | 'end', value: string) => {
+    if (!article || article.parentId) return // Only for main articles
+
+    const newStartTime = field === 'start' ? value : rowPublishTimeStart
+    const newEndTime = field === 'end' ? value : rowPublishTimeEnd
+
+    if (field === 'start') {
+      setRowPublishTimeStart(value)
+    } else {
+      setRowPublishTimeEnd(value)
+    }
+
+    try {
+      const response = await fetch(`/api/articles/${article.id}/row-publishing`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rowPublishTimeStart: newStartTime || null,
+          rowPublishTimeEnd: newEndTime || null,
+          rowPublishDays: rowPublishDays || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update row publishing settings')
+      }
+    } catch (error) {
+      console.error('Error updating row time settings:', error)
+      // Revert on error
+      if (field === 'start') {
+        setRowPublishTimeStart(rowPublishTimeStart)
+      } else {
+        setRowPublishTimeEnd(rowPublishTimeEnd)
+      }
     }
   }
 
@@ -302,6 +425,108 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
                 </p>
               </div>
             </div>
+
+            {/* Row Publishing Settings - Only for main articles */}
+            {article && !article.parentId && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg space-y-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Row Publishing Settings
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Row Background Color (optional)
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={rowBackgroundColor || '#ffffff'}
+                      onChange={(e) => handleRowBackgroundColorChange(e.target.value)}
+                      className="w-12 h-8 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={rowBackgroundColor || ''}
+                      onChange={(e) => handleRowBackgroundColorChange(e.target.value)}
+                      placeholder="Hex color (e.g., #FF5733)"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                    {rowBackgroundColor && (
+                      <button
+                        type="button"
+                        onClick={() => handleRowBackgroundColorChange('')}
+                        className="px-2 py-1 text-sm text-gray-500 hover:text-red-500"
+                        title="Clear color"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Sets background color for this row in the admin articles list
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Row Time Window (optional)
+                  </label>
+                  <div className="space-y-3">
+                    <Input
+                      label="Start Time"
+                      type="time"
+                      value={rowPublishTimeStart}
+                      onChange={(e) => handleRowTimeChange('start', e.target.value)}
+                      placeholder="05:00"
+                      help="Entire row will only be visible after this time"
+                    />
+                    <Input
+                      label="End Time"
+                      type="time"
+                      value={rowPublishTimeEnd}
+                      onChange={(e) => handleRowTimeChange('end', e.target.value)}
+                      placeholder="10:00"
+                      help="Entire row will only be visible before this time"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Row Allowed Days
+                  </label>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={rowSelectedDays.length === 0}
+                          onChange={() => handleRowDayChange('all')}
+                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">All days</span>
+                      </label>
+                    </div>
+                    {DAY_OPTIONS.slice(1).map((day) => (
+                      <div key={day.value}>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={rowSelectedDays.includes(day.value)}
+                            onChange={() => handleRowDayChange(day.value)}
+                            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{day.label}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Time and day settings apply to the entire row (main article + all sub-articles)
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
       </div>
 

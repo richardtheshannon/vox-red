@@ -20,6 +20,7 @@ interface Article {
   temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
+  rowBackgroundColor?: string | null
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
@@ -71,6 +72,7 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
   const [articles, setArticles] = useState(initialArticles)
   const [isReordering, setIsReordering] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
     setArticles(initialArticles)
@@ -89,6 +91,25 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
       setCollapsedGroups(new Set(articlesWithSubArticles))
     }
   }, [initialArticles])
+
+  useEffect(() => {
+    // Detect dark mode on mount and watch for changes
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+
+    // Initial check
+    checkDarkMode()
+
+    // Watch for theme changes using MutationObserver
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   const toggleGroup = (articleId: string) => {
     setCollapsedGroups(prev => {
@@ -361,14 +382,53 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
     }
   }
 
+  // Helper function to invert hex color for light/dark mode compatibility
+  const invertColor = (hexColor: string): string => {
+    // Remove the hash if present
+    const hex = hexColor.replace('#', '')
+
+    // Convert to RGB
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+
+    // Invert each channel
+    const invertedR = 255 - r
+    const invertedG = 255 - g
+    const invertedB = 255 - b
+
+    // Convert back to hex
+    return '#' +
+      invertedR.toString(16).padStart(2, '0') +
+      invertedG.toString(16).padStart(2, '0') +
+      invertedB.toString(16).padStart(2, '0')
+  }
+
+  // Get row background style with theme support
+  const getRowBackgroundStyle = (article: Article, isDarkMode: boolean): React.CSSProperties => {
+    // Only apply to main articles with a color set
+    const mainArticle = article.parentId ?
+      articles.find(a => a.id === article.parentId) : article
+
+    if (!mainArticle?.rowBackgroundColor) {
+      return {}
+    }
+
+    const baseColor = mainArticle.rowBackgroundColor
+    const backgroundColor = isDarkMode ? invertColor(baseColor) : baseColor
+
+    return { backgroundColor }
+  }
+
   return (
     <div className="space-y-2">
       {articles.map((article, index) => (
         <div
           key={article.id}
-          className={`bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+          className={`p-3 sm:p-4 rounded-lg shadow border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
             isReordering ? 'opacity-50' : ''
-          }`}
+          } ${!article.rowBackgroundColor ? 'bg-white dark:bg-gray-800' : ''}`}
+          style={getRowBackgroundStyle(article, isDarkMode)}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -546,9 +606,10 @@ export default function ArticlesList({ initialArticles }: ArticlesListProps) {
                         {article.subArticles?.map((subArticle, subIndex) => (
                           <div
                             key={subArticle.id}
-                            className={`bg-gray-50 dark:bg-gray-900 p-2 sm:p-3 rounded border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
+                            className={`p-2 sm:p-3 rounded border hover:border-gray-300 dark:hover:border-gray-600 transition-all ${
                               isReordering ? 'opacity-50' : ''
-                            }`}
+                            } ${!article.rowBackgroundColor ? 'bg-gray-50 dark:bg-gray-900' : ''}`}
+                            style={getRowBackgroundStyle(subArticle, isDarkMode)}
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                               <div className="flex items-center space-x-2">
