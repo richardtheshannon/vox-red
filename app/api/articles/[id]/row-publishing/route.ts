@@ -52,6 +52,23 @@ export async function PATCH(
       }
     })
 
+    // Propagate row publishing settings to all sub-articles in this row
+    if (updatedArticle.subArticles && updatedArticle.subArticles.length > 0) {
+      const subArticleIds = updatedArticle.subArticles.map(sub => sub.id)
+
+      await prisma.article.updateMany({
+        where: {
+          id: { in: subArticleIds },
+          parentId: id
+        },
+        data: {
+          publishTimeStart: rowPublishTimeStart || null,
+          publishTimeEnd: rowPublishTimeEnd || null,
+          publishDays: rowPublishDays || null
+        }
+      })
+    }
+
     sseManager.notifyArticleChange('updated', id)
 
     return NextResponse.json({ success: true, article: updatedArticle })
