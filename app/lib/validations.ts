@@ -16,6 +16,7 @@ export const articleSchema = z.object({
     z.union([
       z.string().url().max(500),
       z.string().regex(/^\//).max(500), // Allow relative URLs starting with /
+      z.string().regex(/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/).max(500), // Allow YouTube URLs
       z.null()
     ]).optional()
   ),

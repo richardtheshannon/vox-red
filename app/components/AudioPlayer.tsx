@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import YouTubeAudioPlayer from './YouTubeAudioPlayer'
 
 interface AudioPlayerProps {
   audioUrl: string
@@ -8,7 +9,13 @@ interface AudioPlayerProps {
   articleId: string
 }
 
-export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
+// Utility function to detect YouTube URLs
+const isYouTubeUrl = (url: string): boolean => {
+  return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(url)
+}
+
+// Standard HTML5 Audio Player Component
+function StandardAudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isAutoRowPlayActive, setIsAutoRowPlayActive] = useState(false)
@@ -119,4 +126,15 @@ export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       </button>
     </div>
   )
+}
+
+// Main AudioPlayer component that routes to appropriate player
+export default function AudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
+  // Route to YouTube player if URL is a YouTube link
+  if (isYouTubeUrl(audioUrl)) {
+    return <YouTubeAudioPlayer audioUrl={audioUrl} articleId={articleId} />
+  }
+
+  // Use standard HTML5 audio player for MP3s and other audio files
+  return <StandardAudioPlayer audioUrl={audioUrl} articleId={articleId} />
 }
