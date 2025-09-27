@@ -18,7 +18,8 @@
       "Bash(tasklist)",
       "Bash(npx tsc:*)",
       "Bash(git commit:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
