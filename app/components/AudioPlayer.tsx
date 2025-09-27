@@ -85,7 +85,7 @@ function StandardAudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
     if (!audio) return
 
     if (isPlaying) {
-      // Just pause this audio
+      // Just pause this audio (keeps current position)
       audio.pause()
       setIsPlaying(false)
     } else {
@@ -93,7 +93,8 @@ function StandardAudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       window.dispatchEvent(new CustomEvent('stopAllAudio'))
 
       setTimeout(() => {
-        audio.currentTime = 0
+        // Don't reset currentTime - this allows resume from current position
+        // audio.currentTime = 0  // Removed to enable pause/resume
         audio.play().then(() => {
           setIsPlaying(true)
         }).catch(console.error)

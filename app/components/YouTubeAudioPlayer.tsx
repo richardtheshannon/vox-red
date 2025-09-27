@@ -200,7 +200,8 @@ export default function YouTubeAudioPlayer({ audioUrl, articleId }: YouTubeAudio
 
       setTimeout(() => {
         if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-          playerRef.current.seekTo(0)
+          // Don't seek to 0 - this allows resume from current position
+          // playerRef.current.seekTo(0)  // Removed to enable pause/resume
           playerRef.current.playVideo()
         }
       }, 100)
