@@ -93,6 +93,43 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
     }
   }
 
+  // Get pill color for subtitle based on article type and theme
+  const getSubtitlePillColor = () => {
+    if (theme === 'dark') {
+      // Lighter complementary colors for dark backgrounds
+      switch (article.articleType) {
+        case 'meditation':
+          return 'bg-amber-900/30 text-amber-200 border-amber-800/50'
+        case 'education':
+          return 'bg-rose-900/30 text-rose-200 border-rose-800/50'
+        case 'personal':
+          return 'bg-red-900/30 text-red-200 border-red-800/50'
+        case 'spiritual':
+          return 'bg-gray-700/30 text-gray-200 border-gray-600/50'
+        case 'routine':
+          return 'bg-pink-900/30 text-pink-200 border-pink-800/50'
+        default:
+          return 'bg-red-800/30 text-red-200 border-red-700/50'
+      }
+    } else {
+      // Darker complementary colors for light backgrounds
+      switch (article.articleType) {
+        case 'meditation':
+          return 'bg-amber-100 text-amber-900 border-amber-300'
+        case 'education':
+          return 'bg-rose-100 text-rose-900 border-rose-300'
+        case 'personal':
+          return 'bg-red-100 text-red-900 border-red-300'
+        case 'spiritual':
+          return 'bg-gray-200 text-gray-900 border-gray-400'
+        case 'routine':
+          return 'bg-pink-100 text-pink-900 border-pink-300'
+        default:
+          return 'bg-red-100 text-red-900 border-red-300'
+      }
+    }
+  }
+
   // Create audio tracks for auto-row-play (only if this article has audio)
   const getAudioTracks = () => {
     if (showAutoRowPlay && article.audioUrl) {
@@ -255,9 +292,11 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
             </h1>
 
             {article.subtitle && (
-              <p className="text-gray-600 dark:text-gray-400 font-medium responsive-subtitle">
-                {article.subtitle}
-              </p>
+              <div className="my-3">
+                <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border ${getSubtitlePillColor()}`}>
+                  {article.subtitle}
+                </span>
+              </div>
             )}
 
             <div

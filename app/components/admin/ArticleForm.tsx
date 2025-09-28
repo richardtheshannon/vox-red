@@ -225,6 +225,30 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
     }
   }
 
+  // Handle subtitle change for main articles - sync to all sub-articles
+  const handleSubtitleChange = async (value: string) => {
+    setSubtitle(value)
+
+    // Only sync for main articles that are already saved
+    if (article && !article.parentId) {
+      try {
+        const response = await fetch(`/api/articles/${article.id}/row-subtitle`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ subtitle: value || null }),
+        })
+
+        if (!response.ok) {
+          console.error('Failed to sync subtitle to sub-articles')
+        }
+      } catch (error) {
+        console.error('Error syncing subtitle:', error)
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -288,9 +312,9 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
           />
 
           <Input
-            label="Subtitle (optional)"
+            label={article && !article.parentId ? "Subtitle (optional - syncs to all articles in row)" : "Subtitle (optional)"}
             value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
+            onChange={(e) => handleSubtitleChange(e.target.value)}
             placeholder="Enter article subtitle"
           />
 
