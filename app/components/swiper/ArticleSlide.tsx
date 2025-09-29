@@ -349,18 +349,32 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
               )}
             </h1>
 
-            {article.subtitle && (
-              <div className="my-3">
-                <span
-                  className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border`}
-                  style={{
-                    color: articleColors.subHeading,
-                    borderColor: articleColors.subHeading + '40',
-                    backgroundColor: articleColors.subHeading + '15'
-                  }}
-                >
-                  {article.subtitle}
-                </span>
+            {(article.articleType || article.subtitle) && (
+              <div className="my-3 flex flex-wrap gap-2">
+                {article.articleType && article.articleType !== 'notSet' && (
+                  <span
+                    className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border`}
+                    style={{
+                      color: articleColors.subHeading,
+                      borderColor: articleColors.subHeading + '40',
+                      backgroundColor: articleColors.subHeading + '15'
+                    }}
+                  >
+                    {article.articleType}
+                  </span>
+                )}
+                {article.subtitle && (
+                  <span
+                    className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border`}
+                    style={{
+                      color: articleColors.subHeading,
+                      borderColor: articleColors.subHeading + '40',
+                      backgroundColor: articleColors.subHeading + '15'
+                    }}
+                  >
+                    {article.subtitle}
+                  </span>
+                )}
               </div>
             )}
 
