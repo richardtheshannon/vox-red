@@ -28,9 +28,29 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [isUnpublishing, setIsUnpublishing] = useState(false)
+  const [colors, setColors] = useState<{
+    dark: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
+    light: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
+  } | null>(null)
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
+
+  // Fetch color settings
+  useEffect(() => {
+    const fetchColors = async () => {
+      try {
+        const response = await fetch('/api/settings/article-type-colors/public')
+        if (response.ok) {
+          const data = await response.json()
+          setColors(data)
+        }
+      } catch (error) {
+        console.error('Error fetching colors:', error)
+      }
+    }
+    fetchColors()
+  }, [])
 
   // Listen for theme changes
   useEffect(() => {
@@ -55,80 +75,113 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
     return () => observer.disconnect()
   }, [])
 
-  // Get background color based on article type and theme
-  const getBackgroundColor = () => {
-    // Return appropriate colors based on theme
-    if (theme === 'dark') {
-      // Dark mode colors (current colors)
-      switch (article.articleType) {
-        case 'meditation':
-          return '#250902' // Very dark brown
-        case 'education':
-          return '#38040e' // Dark burgundy
-        case 'personal':
-          return '#640d14' // Deep red
-        case 'spiritual':
-          return '#333333' // Dark gray
-        case 'routine':
-          return '#800e13' // Crimson
-        default:
-          return '#ad2831' // Bright red (Not Set or null)
-      }
-    } else {
-      // Light mode colors (inverted/lighter versions)
-      switch (article.articleType) {
-        case 'meditation':
-          return '#f0e6e0' // Very light brown
-        case 'education':
-          return '#f5e0e5' // Light pink
-        case 'personal':
-          return '#fde2e4' // Very light rose
-        case 'spiritual':
-          return '#e8e8e8' // Light gray
-        case 'routine':
-          return '#ffd7db' // Light salmon
-        default:
-          return '#ffc9cc' // Light coral (Not Set or null)
+  // Get colors based on article type and theme
+  const getColors = () => {
+    // Use dynamic colors if available, otherwise use defaults
+    const defaultDarkColors = {
+      meditation: {
+        background: '#250902',
+        heading: '#fbbf24',
+        subHeading: '#fcd34d',
+        content: '#e5e7eb'
+      },
+      education: {
+        background: '#38040e',
+        heading: '#f9a8d4',
+        subHeading: '#fbcfe8',
+        content: '#e5e7eb'
+      },
+      personal: {
+        background: '#640d14',
+        heading: '#fca5a5',
+        subHeading: '#fecaca',
+        content: '#e5e7eb'
+      },
+      spiritual: {
+        background: '#333333',
+        heading: '#d4d4d8',
+        subHeading: '#e4e4e7',
+        content: '#e5e7eb'
+      },
+      routine: {
+        background: '#800e13',
+        heading: '#f9a8d4',
+        subHeading: '#fbcfe8',
+        content: '#e5e7eb'
+      },
+      notSet: {
+        background: '#ad2831',
+        heading: '#fca5a5',
+        subHeading: '#fecaca',
+        content: '#e5e7eb'
       }
     }
+
+    const defaultLightColors = {
+      meditation: {
+        background: '#f0e6e0',
+        heading: '#92400e',
+        subHeading: '#78350f',
+        content: '#1f2937'
+      },
+      education: {
+        background: '#f5e0e5',
+        heading: '#831843',
+        subHeading: '#9f1239',
+        content: '#1f2937'
+      },
+      personal: {
+        background: '#fde2e4',
+        heading: '#991b1b',
+        subHeading: '#b91c1c',
+        content: '#1f2937'
+      },
+      spiritual: {
+        background: '#e8e8e8',
+        heading: '#374151',
+        subHeading: '#4b5563',
+        content: '#1f2937'
+      },
+      routine: {
+        background: '#ffd7db',
+        heading: '#831843',
+        subHeading: '#9f1239',
+        content: '#1f2937'
+      },
+      notSet: {
+        background: '#ffc9cc',
+        heading: '#991b1b',
+        subHeading: '#b91c1c',
+        content: '#1f2937'
+      }
+    }
+
+    const defaultColors = theme === 'dark' ? defaultDarkColors : defaultLightColors
+    const articleTypeKey = article.articleType || 'notSet'
+
+    if (colors) {
+      const colorSet = theme === 'dark' ? colors.dark : colors.light
+      // Check if colors are in old format (string) or new format (object)
+      if (colorSet[articleTypeKey]) {
+        if (typeof colorSet[articleTypeKey] === 'string') {
+          // Old format - use defaults for text colors
+          return {
+            background: colorSet[articleTypeKey],
+            heading: defaultColors[articleTypeKey as keyof typeof defaultColors].heading,
+            subHeading: defaultColors[articleTypeKey as keyof typeof defaultColors].subHeading,
+            content: defaultColors[articleTypeKey as keyof typeof defaultColors].content
+          }
+        } else {
+          // New format - use custom colors
+          return colorSet[articleTypeKey]
+        }
+      }
+    }
+
+    // Fallback to defaults if colors haven't loaded
+    return defaultColors[articleTypeKey as keyof typeof defaultColors] || defaultColors.notSet
   }
 
-  // Get pill color for subtitle based on article type and theme
-  const getSubtitlePillColor = () => {
-    if (theme === 'dark') {
-      // Lighter complementary colors for dark backgrounds
-      switch (article.articleType) {
-        case 'meditation':
-          return 'bg-amber-900/30 text-amber-200 border-amber-800/50'
-        case 'education':
-          return 'bg-rose-900/30 text-rose-200 border-rose-800/50'
-        case 'personal':
-          return 'bg-red-900/30 text-red-200 border-red-800/50'
-        case 'spiritual':
-          return 'bg-gray-700/30 text-gray-200 border-gray-600/50'
-        case 'routine':
-          return 'bg-pink-900/30 text-pink-200 border-pink-800/50'
-        default:
-          return 'bg-red-800/30 text-red-200 border-red-700/50'
-      }
-    } else {
-      // Darker complementary colors for light backgrounds
-      switch (article.articleType) {
-        case 'meditation':
-          return 'bg-amber-100 text-amber-900 border-amber-300'
-        case 'education':
-          return 'bg-rose-100 text-rose-900 border-rose-300'
-        case 'personal':
-          return 'bg-red-100 text-red-900 border-red-300'
-        case 'spiritual':
-          return 'bg-gray-200 text-gray-900 border-gray-400'
-        case 'routine':
-          return 'bg-pink-100 text-pink-900 border-pink-300'
-        default:
-          return 'bg-red-100 text-red-900 border-red-300'
-      }
-    }
-  }
 
   // Create audio tracks for auto-row-play (only if this article has audio)
   const getAudioTracks = () => {
@@ -231,8 +284,10 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
     }
   }
 
+  const articleColors = getColors()
+
   return (
-    <div className="h-full flex flex-col relative" style={{ backgroundColor: getBackgroundColor() }}>
+    <div className="h-full flex flex-col relative" style={{ backgroundColor: articleColors.background }}>
       {/* Auto-row-play button for single articles */}
       {showAutoRowPlay && <AutoRowPlayButton audioTracks={getAudioTracks()} />}
       {/* Fixed Header - 80px */}
@@ -284,7 +339,10 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
         <div className={`flex flex-col ${getVerticalAlignClasses()} min-h-full`}>
           <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6">
             <div className={`w-full max-w-none ${getTextAlignClasses()} space-y-4 sm:space-y-6`} style={{ wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
-            <h1 className={`font-bold text-gray-900 dark:text-gray-100 responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}>
+            <h1
+              className={`font-bold responsive-title inline-flex items-center gap-2 ${textAlign === 'right' ? 'justify-end' : ''}`}
+              style={{ color: articleColors.heading }}
+            >
               <span>{article.title}</span>
               {article.audioUrl && (
                 <AudioPlayer audioUrl={article.audioUrl} title={article.title} articleId={article.id} />
@@ -293,14 +351,22 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
 
             {article.subtitle && (
               <div className="my-3">
-                <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border ${getSubtitlePillColor()}`}>
+                <span
+                  className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border`}
+                  style={{
+                    color: articleColors.subHeading,
+                    borderColor: articleColors.subHeading + '40',
+                    backgroundColor: articleColors.subHeading + '15'
+                  }}
+                >
                   {article.subtitle}
                 </span>
               </div>
             )}
 
             <div
-              className={`text-gray-700 dark:text-gray-300 prose dark:prose-invert max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
+              className={`prose max-w-none responsive-content ${textAlign === 'right' ? 'prose-headings:text-right prose-p:text-right' : 'prose-headings:text-left prose-p:text-left'}`}
+              style={{ color: articleColors.content }}
               dangerouslySetInnerHTML={{ __html: article.content || '' }}
             />
             </div>

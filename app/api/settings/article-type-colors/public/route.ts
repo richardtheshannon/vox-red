@@ -6,7 +6,16 @@ export const dynamic = 'force-dynamic'
 const DARK_SETTINGS_KEY = 'article_type_colors'
 const LIGHT_SETTINGS_KEY = 'article_type_colors_light'
 
-const defaultDarkColors = {
+type ColorSettings = {
+  meditation: { background: string; heading: string; subHeading: string; content: string }
+  education: { background: string; heading: string; subHeading: string; content: string }
+  personal: { background: string; heading: string; subHeading: string; content: string }
+  spiritual: { background: string; heading: string; subHeading: string; content: string }
+  routine: { background: string; heading: string; subHeading: string; content: string }
+  notSet: { background: string; heading: string; subHeading: string; content: string }
+}
+
+const defaultDarkColors: ColorSettings = {
   meditation: {
     background: '#250902',
     heading: '#fbbf24',
@@ -45,7 +54,7 @@ const defaultDarkColors = {
   }
 }
 
-const defaultLightColors = {
+const defaultLightColors: ColorSettings = {
   meditation: {
     background: '#f0e6e0',
     heading: '#92400e',
@@ -101,7 +110,7 @@ export async function GET() {
       if (typeof parsed.meditation === 'string') {
         // Old format - convert to new
         const articleTypes = ['meditation', 'education', 'personal', 'spiritual', 'routine', 'notSet'] as const
-        const converted: any = {}
+        const converted = {} as ColorSettings
         articleTypes.forEach(type => {
           converted[type] = {
             background: parsed[type] || defaultDarkColors[type].background,
@@ -122,7 +131,7 @@ export async function GET() {
       if (typeof parsed.meditation === 'string') {
         // Old format - convert to new
         const articleTypes = ['meditation', 'education', 'personal', 'spiritual', 'routine', 'notSet'] as const
-        const converted: any = {}
+        const converted = {} as ColorSettings
         articleTypes.forEach(type => {
           converted[type] = {
             background: parsed[type] || defaultLightColors[type].background,

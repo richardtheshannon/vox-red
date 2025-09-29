@@ -19,7 +19,9 @@
       "Bash(npx tsc:*)",
       "Bash(git commit:*)",
       "Bash(mkdir:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:essential-audio-player.net)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
