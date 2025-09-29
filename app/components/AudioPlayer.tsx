@@ -56,7 +56,7 @@ function StandardAudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       if (audio) {
         console.log(`AudioPlayer ${articleId} stopping due to stopAllAudio`)
         audio.pause()
-        audio.currentTime = 0
+        // Don't reset currentTime to allow resume from current position
         setIsPlaying(false)
       }
     }
@@ -108,19 +108,19 @@ function StandardAudioPlayer({ audioUrl, articleId }: AudioPlayerProps) {
       <button
         onClick={togglePlayPause}
         disabled={isLoading}
-        className="w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+        className="w-12 h-12 rounded-full flex items-center justify-center transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
       >
         {isLoading ? (
-          <span className="material-icons text-sm text-gray-600 dark:text-gray-300 animate-spin">
+          <span className="material-icons text-2xl text-gray-600 dark:text-gray-300 animate-spin">
             hourglass_empty
           </span>
         ) : (isPlaying || isAutoRowPlayActive) ? (
-          <span className="material-icons text-sm text-red-500">
+          <span className="material-icons text-red-500" style={{fontSize: '44px'}}>
             {isPlaying ? 'pause_circle' : 'play_circle'}
           </span>
         ) : (
-          <span className="material-icons text-sm text-gray-600 dark:text-gray-300">
+          <span className="material-icons text-gray-600 dark:text-gray-300" style={{fontSize: '44px'}}>
             play_circle
           </span>
         )}
