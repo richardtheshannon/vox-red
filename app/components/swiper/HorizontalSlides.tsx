@@ -49,6 +49,12 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     slideIndex: number
   }>>([])
   const swiperRef = useRef<SwiperType | null>(null)
+  // Track current slide's scroll state to control mousewheel behavior
+  const [currentSlideScrollState, setCurrentSlideScrollState] = useState({
+    hasOverflow: false,
+    isAtBottom: true,
+    isAtTop: true
+  })
 
   // Update audio tracks whenever visible slides change
   useEffect(() => {
@@ -120,6 +126,57 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       window.removeEventListener('navigateToHorizontalSlide', handleNavigateToHorizontalSlide as EventListener)
     }
   }, [])
+
+  // Add wheel event interceptor
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      const { hasOverflow, isAtBottom } = currentSlideScrollState
+
+      // If content has overflow and is not at bottom, prevent horizontal scrolling
+      if (hasOverflow && !isAtBottom && Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+        // Let vertical scrolling happen in article-scroll div
+        return
+      }
+
+      if (hasOverflow && !isAtBottom && Math.abs(e.deltaX) >= Math.abs(e.deltaY)) {
+        // Prevent horizontal scroll when content needs vertical scrolling
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+
+    // Add capture phase listener to intercept before Swiper
+    document.addEventListener('wheel', handleWheel, { passive: false, capture: true })
+
+    return () => {
+      document.removeEventListener('wheel', handleWheel, { capture: true })
+    }
+  }, [currentSlideScrollState])
+
+  const handleScrollStatusChange = (hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => {
+    setCurrentSlideScrollState({ hasOverflow, isAtBottom, isAtTop })
+
+    // Update swiper's behavior based on scroll state
+    if (swiperRef.current) {
+      if (hasOverflow && !isAtBottom) {
+        // Disable ALL horizontal navigation when content needs to scroll down
+        swiperRef.current.allowTouchMove = false
+        swiperRef.current.allowSlideNext = false
+        swiperRef.current.allowSlidePrev = true // Allow going back
+        if (swiperRef.current.mousewheel) {
+          swiperRef.current.mousewheel.disable()
+        }
+      } else {
+        // Enable ALL horizontal navigation when content is fully scrolled or no overflow
+        swiperRef.current.allowTouchMove = true
+        swiperRef.current.allowSlideNext = true
+        swiperRef.current.allowSlidePrev = true
+        if (swiperRef.current.mousewheel) {
+          swiperRef.current.mousewheel.enable()
+        }
+      }
+    }
+  }
 
   const handleSlideComplete = async (articleId: string) => {
     try {
@@ -199,6 +256,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
             articleType: visibleSlides[0].articleType || mainArticle.articleType
           }}
           onComplete={handleSlideComplete}
+          onScrollStatusChange={handleScrollStatusChange}
         />
       </>
     )
@@ -214,10 +272,23 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       <Swiper
       onSwiper={(swiper) => {
         swiperRef.current = swiper
-        // Swiper initialized
+        // Initially disable navigation until we know the scroll state
+        swiper.allowTouchMove = true
+        swiper.allowSlideNext = true
+        swiper.allowSlidePrev = true
       }}
       onSlideChange={() => {
-        // Slide change handling removed for simplified auto-play
+        // Reset scroll state when slide changes - default to allowing navigation
+        setCurrentSlideScrollState({ hasOverflow: false, isAtBottom: true, isAtTop: true })
+        // Re-enable all navigation temporarily (will be updated by the new slide's scroll status)
+        if (swiperRef.current) {
+          swiperRef.current.allowTouchMove = true
+          swiperRef.current.allowSlideNext = true
+          swiperRef.current.allowSlidePrev = true
+          if (swiperRef.current.mousewheel) {
+            swiperRef.current.mousewheel.enable()
+          }
+        }
       }}
       modules={[Pagination, Keyboard, Mousewheel]}
       direction="horizontal"
@@ -258,6 +329,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
               articleType: article.articleType || mainArticle.articleType
             }}
             onComplete={handleSlideComplete}
+            onScrollStatusChange={handleScrollStatusChange}
           />
         </SwiperSlide>
       ))}

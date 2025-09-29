@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
 import AutoRowPlayButton from '../AutoRowPlayButton'
@@ -22,9 +22,10 @@ interface ArticleSlideProps {
   }
   onComplete?: (articleId: string) => Promise<void>
   showAutoRowPlay?: boolean // Optional prop to show auto-row-play button
+  onScrollStatusChange?: (hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => void
 }
 
-export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false }: ArticleSlideProps) {
+export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false, onScrollStatusChange }: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [isUnpublishing, setIsUnpublishing] = useState(false)
@@ -35,6 +36,7 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
   const router = useRouter()
   const textAlign = article.textAlign || 'left'
   const verticalAlign = article.verticalAlign || 'center'
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Fetch color settings
   useEffect(() => {
@@ -74,6 +76,46 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
 
     return () => observer.disconnect()
   }, [])
+
+  // Check scroll status and notify parent
+  const checkScrollStatus = useCallback(() => {
+    if (!scrollRef.current || !onScrollStatusChange) return
+
+    const element = scrollRef.current
+    const hasOverflow = element.scrollHeight > element.clientHeight
+    const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 5
+    const isAtTop = element.scrollTop < 5
+
+    onScrollStatusChange(hasOverflow, isAtBottom, isAtTop)
+  }, [onScrollStatusChange])
+
+  // Monitor scroll position and content changes
+  useEffect(() => {
+    const element = scrollRef.current
+    if (!element) return
+
+    // Check initial state
+    checkScrollStatus()
+
+    // Listen for scroll events
+    const handleScroll = () => {
+      checkScrollStatus()
+    }
+
+    element.addEventListener('scroll', handleScroll, { passive: true })
+
+    // Also check when content might have changed (using ResizeObserver)
+    const resizeObserver = new ResizeObserver(() => {
+      checkScrollStatus()
+    })
+
+    resizeObserver.observe(element)
+
+    return () => {
+      element.removeEventListener('scroll', handleScroll)
+      resizeObserver.disconnect()
+    }
+  }, [checkScrollStatus])
 
   // Get colors based on article type and theme
   const getColors = () => {
@@ -302,6 +344,7 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
 
       {/* Fixed height scrollable container with strict margins */}
       <div
+        ref={scrollRef}
         className="absolute inset-0 overflow-y-auto overflow-x-hidden article-scroll"
         style={{
           top: '80px',
