@@ -44,8 +44,10 @@ export async function GET(
     let isActive = false;
 
     if (challenge.challengeStartDate && challenge.challengeEndDate) {
-      const startTime = challenge.challengeStartDate.getTime();
-      const endTime = challenge.challengeEndDate.getTime();
+      const startDate = new Date(challenge.challengeStartDate);
+      const endDate = new Date(challenge.challengeEndDate);
+      const startTime = startDate.getTime();
+      const endTime = endDate.getTime();
       const nowTime = now.getTime();
 
       if (nowTime >= startTime && nowTime <= endTime) {

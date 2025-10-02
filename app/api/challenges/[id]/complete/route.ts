@@ -38,9 +38,11 @@ export async function POST(
     }
 
     const now = new Date();
+    const startDate = new Date(challenge.challengeStartDate);
+    const endDate = new Date(challenge.challengeEndDate);
 
     // Check if challenge is active
-    if (now < challenge.challengeStartDate || now > challenge.challengeEndDate) {
+    if (now < startDate || now > endDate) {
       return NextResponse.json(
         { error: 'Challenge is not active' },
         { status: 400 }
@@ -49,7 +51,7 @@ export async function POST(
 
     // Calculate which day of the challenge we're on
     const daysDiff = Math.floor(
-      (now.getTime() - challenge.challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
     const currentDay = daysDiff + 1; // Day 1 is the start date
 

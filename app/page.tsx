@@ -34,6 +34,10 @@ export default async function Home() {
       rowPublishTimeEnd: true,
       rowPublishDays: true,
       articleType: true,
+      isChallenge: true,
+      challengeDuration: true,
+      challengeStartDate: true,
+      challengeEndDate: true,
       createdAt: true,
       updatedAt: true,
       subArticles: {
@@ -58,6 +62,10 @@ export default async function Home() {
           publishTimeEnd: true,
           publishDays: true,
           articleType: true,
+          isChallenge: true,
+          challengeDuration: true,
+          challengeStartDate: true,
+          challengeEndDate: true,
         }
       }
     }

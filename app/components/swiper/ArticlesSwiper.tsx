@@ -28,6 +28,10 @@ interface Article {
   temporarilyUnpublished?: boolean
   articleType?: string | null
   pauseDuration?: number | null
+  isChallenge?: boolean
+  challengeDuration?: number | null
+  challengeStartDate?: Date | string | null
+  challengeEndDate?: Date | string | null
 }
 
 interface ArticlesSwiperProps {

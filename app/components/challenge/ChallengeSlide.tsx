@@ -72,55 +72,55 @@ export default function ChallengeSlide({
 
   return (
     <div
-      className="h-full w-full flex flex-col relative"
+      className="h-full w-full flex items-center justify-center relative"
       style={{
         backgroundColor: backgroundColor || (theme === 'dark' ? '#1a1a1a' : '#ffffff'),
       }}
     >
-      {/* Header */}
-      <div className="p-6 pb-2">
-        {/* Status Badge */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className={`${status.color} text-white text-xs px-3 py-1 rounded-full font-medium`}>
-            {status.label}
-          </span>
-          {article.articleType && article.articleType !== 'notSet' && (
-            <span
-              className="text-xs px-3 py-1 rounded-full font-medium"
-              style={{
-                backgroundColor: subHeadingColor ? `${subHeadingColor}20` : 'rgba(107, 114, 128, 0.1)',
-                color: subHeadingColor || '#6b7280',
-              }}
+      <div className="w-full max-w-2xl px-6 space-y-6">
+        {/* Title and Badges */}
+        <div className="text-center space-y-3">
+          {/* Title */}
+          <h1
+            className="text-3xl font-bold"
+            style={{ color: headingColor || (theme === 'dark' ? '#ffffff' : '#000000') }}
+          >
+            {article.title}
+          </h1>
+
+          {/* Subtitle */}
+          {article.subtitle && (
+            <p
+              className="text-lg opacity-80"
+              style={{ color: subHeadingColor || (theme === 'dark' ? '#d1d5db' : '#4b5563') }}
             >
-              {article.articleType}
-            </span>
+              {article.subtitle}
+            </p>
           )}
-          <span className="text-xs px-3 py-1 rounded-full font-medium bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
-            {article.challengeDuration || 30} Day Challenge
-          </span>
+
+          {/* Status Badges */}
+          <div className="flex items-center justify-center gap-2">
+            <span className={`${status.color} text-white text-xs px-3 py-1 rounded-full font-medium`}>
+              {status.label}
+            </span>
+            {article.articleType && article.articleType !== 'notSet' && (
+              <span
+                className="text-xs px-3 py-1 rounded-full font-medium"
+                style={{
+                  backgroundColor: subHeadingColor ? `${subHeadingColor}20` : 'rgba(107, 114, 128, 0.1)',
+                  color: subHeadingColor || '#6b7280',
+                }}
+              >
+                {article.articleType}
+              </span>
+            )}
+            <span className="text-xs px-3 py-1 rounded-full font-medium bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
+              {article.challengeDuration || 30} Day Challenge
+            </span>
+          </div>
         </div>
 
-        {/* Title */}
-        <h1
-          className="text-3xl font-bold mb-2"
-          style={{ color: headingColor || (theme === 'dark' ? '#ffffff' : '#000000') }}
-        >
-          {article.title}
-        </h1>
-
-        {/* Subtitle */}
-        {article.subtitle && (
-          <p
-            className="text-lg opacity-80"
-            style={{ color: subHeadingColor || (theme === 'dark' ? '#d1d5db' : '#4b5563') }}
-          >
-            {article.subtitle}
-          </p>
-        )}
-      </div>
-
-      {/* Progress Graph */}
-      <div className="flex-1 overflow-hidden">
+        {/* Progress Graph - Embedded inline */}
         <ChallengeProgressGraph
           challengeId={article.id}
           duration={article.challengeDuration || 30}

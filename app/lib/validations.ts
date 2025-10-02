@@ -28,6 +28,7 @@ export const articleSchema = z.object({
   textAlign: z.enum(['left', 'right']).default('left'),
   verticalAlign: z.enum(['top', 'center', 'bottom']).default('center'),
   parentId: z.string().uuid().nullable().optional(),
+  published: z.boolean().optional().default(true),
   isFavorite: z.boolean().optional(),
   articleType: z.preprocess(
     (val) => val === '' || val === 'none' ? null : val,

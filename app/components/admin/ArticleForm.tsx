@@ -302,6 +302,7 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
         textAlign,
         verticalAlign,
         parentId: parentId || null,
+        published: true, // Ensure new articles are published by default
         publishTimeStart: publishTimeStart || null,
         publishTimeEnd: publishTimeEnd || null,
         publishDays: publishDays || null,
