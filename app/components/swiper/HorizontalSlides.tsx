@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
+import ChallengeSlide from '../challenge/ChallengeSlide'
 import AutoRowPlayButton from '../AutoRowPlayButton'
 import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
@@ -31,6 +32,10 @@ interface Article {
   publishTimeStart?: string | null
   publishTimeEnd?: string | null
   publishDays?: string | null
+  isChallenge?: boolean
+  challengeDuration?: number | null
+  challengeStartDate?: Date | string | null
+  challengeEndDate?: Date | string | null
 }
 
 interface HorizontalSlidesProps {
@@ -42,6 +47,7 @@ interface HorizontalSlidesProps {
 export default function HorizontalSlides({ mainArticle, subArticles }: HorizontalSlidesProps) {
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
+  const [completedExercises, setCompletedExercises] = useState<string[]>([])
   const [audioTracks, setAudioTracks] = useState<Array<{
     url: string
     title: string
@@ -55,6 +61,25 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     isAtBottom: true,
     isAtTop: true
   })
+
+  const fetchCompletedExercises = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/challenges/${mainArticle.id}/progress`)
+      if (response.ok) {
+        const data = await response.json()
+        setCompletedExercises(data.todayCompleted || [])
+      }
+    } catch (error) {
+      console.error('Error fetching challenge progress:', error)
+    }
+  }, [mainArticle.id])
+
+  // Fetch completed exercises if this is a challenge
+  useEffect(() => {
+    if (mainArticle.isChallenge) {
+      fetchCompletedExercises()
+    }
+  }, [mainArticle.isChallenge, fetchCompletedExercises])
 
   // Update audio tracks whenever visible slides change
   useEffect(() => {
@@ -153,7 +178,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [currentSlideScrollState])
 
-  const handleScrollStatusChange = (hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => {
+  const handleScrollStatusChange = useCallback((hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => {
     setCurrentSlideScrollState({ hasOverflow, isAtBottom, isAtTop })
 
     // Update swiper's behavior based on scroll state
@@ -176,7 +201,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         }
       }
     }
-  }
+  }, [])
 
   const handleSlideComplete = async (articleId: string) => {
     try {
@@ -246,17 +271,41 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
   if (visibleSlides.length === 1) {
     // If only one slide, show it without swiper but with auto-row-play button
+    const slide = visibleSlides[0]
+    const isMainSlide = slide.id === mainArticle.id
+
+    // If this is a challenge main slide, show the challenge progress
+    if (mainArticle.isChallenge && isMainSlide) {
+      return (
+        <>
+          <AutoRowPlayButton audioTracks={audioTracks} pauseDuration={mainArticle.pauseDuration} />
+          <ChallengeSlide
+            article={{
+              ...slide,
+              articleType: slide.articleType || mainArticle.articleType,
+              challengeDuration: mainArticle.challengeDuration,
+              challengeStartDate: mainArticle.challengeStartDate,
+              challengeEndDate: mainArticle.challengeEndDate
+            }}
+          />
+        </>
+      )
+    }
+
     return (
       <>
         <AutoRowPlayButton audioTracks={audioTracks} pauseDuration={mainArticle.pauseDuration} />
         <ArticleSlide
           article={{
-            ...visibleSlides[0],
+            ...slide,
             // Sub-articles inherit the parent's articleType
-            articleType: visibleSlides[0].articleType || mainArticle.articleType
+            articleType: slide.articleType || mainArticle.articleType
           }}
           onComplete={handleSlideComplete}
           onScrollStatusChange={handleScrollStatusChange}
+          isInChallenge={mainArticle.isChallenge}
+          challengeId={mainArticle.id}
+          isCompleted={completedExercises.includes(slide.id)}
         />
       </>
     )
@@ -320,19 +369,43 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         '--swiper-pagination-bottom': '40px',
       } as React.CSSProperties}
     >
-      {visibleSlides.map((article) => (
-        <SwiperSlide key={article.id}>
-          <ArticleSlide
-            article={{
-              ...article,
-              // Sub-articles inherit the parent's articleType
-              articleType: article.articleType || mainArticle.articleType
-            }}
-            onComplete={handleSlideComplete}
-            onScrollStatusChange={handleScrollStatusChange}
-          />
-        </SwiperSlide>
-      ))}
+      {visibleSlides.map((article) => {
+        const isMainSlide = article.id === mainArticle.id
+
+        // For challenge rows, show ChallengeSlide for main slide, ArticleSlide for exercises
+        if (mainArticle.isChallenge && isMainSlide) {
+          return (
+            <SwiperSlide key={article.id}>
+              <ChallengeSlide
+                article={{
+                  ...article,
+                  articleType: article.articleType || mainArticle.articleType,
+                  challengeDuration: mainArticle.challengeDuration,
+                  challengeStartDate: mainArticle.challengeStartDate,
+                  challengeEndDate: mainArticle.challengeEndDate
+                }}
+              />
+            </SwiperSlide>
+          )
+        }
+
+        return (
+          <SwiperSlide key={article.id}>
+            <ArticleSlide
+              article={{
+                ...article,
+                // Sub-articles inherit the parent's articleType
+                articleType: article.articleType || mainArticle.articleType
+              }}
+              onComplete={handleSlideComplete}
+              onScrollStatusChange={handleScrollStatusChange}
+              isInChallenge={mainArticle.isChallenge}
+              challengeId={mainArticle.id}
+              isCompleted={completedExercises.includes(article.id)}
+            />
+          </SwiperSlide>
+        )
+      })}
     </Swiper>
     </>
   )

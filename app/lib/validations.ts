@@ -61,6 +61,19 @@ export const articleSchema = z.object({
     (val) => val === '' ? null : val,
     z.string().max(200).nullable().optional()
   ),
+  isChallenge: z.boolean().optional().default(false),
+  challengeDuration: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : val,
+    z.number().int().nullable().optional()
+  ),
+  challengeStartDate: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : val,
+    z.union([z.string().datetime(), z.date(), z.null()]).nullable().optional()
+  ),
+  challengeEndDate: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : val,
+    z.union([z.string().datetime(), z.date(), z.null()]).nullable().optional()
+  ),
 })
 
 export const reorderSchema = z.object({

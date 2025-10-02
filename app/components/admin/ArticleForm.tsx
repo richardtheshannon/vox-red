@@ -29,6 +29,10 @@ interface ArticleFormProps {
     publishTimeStart?: string | null
     publishTimeEnd?: string | null
     publishDays?: string | null
+    isChallenge?: boolean
+    challengeDuration?: number | null
+    challengeStartDate?: Date | string | null
+    challengeEndDate?: Date | string | null
   }
   allArticles?: Array<{
     id: string
@@ -77,6 +81,34 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [availableArticles, setAvailableArticles] = useState<typeof allArticles>([])
+
+  // Challenge fields
+  const [isChallenge, setIsChallenge] = useState(article?.isChallenge || false)
+  const [challengeDuration, setChallengeDuration] = useState<number>(article?.challengeDuration || 30)
+  const [challengeStartDate, setChallengeStartDate] = useState<string>(() => {
+    if (article?.challengeStartDate) {
+      const date = new Date(article.challengeStartDate)
+      return date.toISOString().split('T')[0]
+    }
+    return ''
+  })
+  const [challengeEndDate, setChallengeEndDate] = useState<string>(() => {
+    if (article?.challengeEndDate) {
+      const date = new Date(article.challengeEndDate)
+      return date.toISOString().split('T')[0]
+    }
+    return ''
+  })
+
+  // Auto-calculate end date when start date or duration changes
+  useEffect(() => {
+    if (isChallenge && challengeStartDate) {
+      const start = new Date(challengeStartDate)
+      const end = new Date(start)
+      end.setDate(start.getDate() + challengeDuration - 1)
+      setChallengeEndDate(end.toISOString().split('T')[0])
+    }
+  }, [challengeStartDate, challengeDuration, isChallenge])
 
   useEffect(() => {
     // Fetch main articles to use as parent options
@@ -273,6 +305,10 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
         publishTimeStart: publishTimeStart || null,
         publishTimeEnd: publishTimeEnd || null,
         publishDays: publishDays || null,
+        isChallenge: parentId ? false : isChallenge, // Only main articles can be challenges
+        challengeDuration: isChallenge ? challengeDuration : null,
+        challengeStartDate: isChallenge && challengeStartDate ? new Date(challengeStartDate).toISOString() : null,
+        challengeEndDate: isChallenge && challengeEndDate ? new Date(challengeEndDate).toISOString() : null,
       }
 
       console.log('Submitting article data:', requestData)
@@ -549,6 +585,85 @@ export default function ArticleForm({ article, allArticles }: ArticleFormProps) 
                     Time and day settings apply to the entire row (main article + all sub-articles)
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Challenge Settings - Only for main articles */}
+            {!parentId && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-lg space-y-6 mt-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Challenge Settings
+                </h3>
+
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={isChallenge}
+                      onChange={(e) => setIsChallenge(e.target.checked)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Is Challenge Row
+                    </span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enable to make this a 30/60/90 day challenge with progress tracking
+                  </p>
+                </div>
+
+                {isChallenge && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Challenge Duration
+                      </label>
+                      <div className="space-y-2">
+                        {[30, 60, 90].map((days) => (
+                          <label key={days} className="flex items-center">
+                            <input
+                              type="radio"
+                              value={days}
+                              checked={challengeDuration === days}
+                              onChange={(e) => setChallengeDuration(Number(e.target.value))}
+                              className="rounded-full border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              {days} Days
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Input
+                        label="Challenge Start Date"
+                        type="date"
+                        value={challengeStartDate}
+                        onChange={(e) => setChallengeStartDate(e.target.value)}
+                        required={isChallenge}
+                        help="When the challenge period begins"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        label="Challenge End Date (Auto-calculated)"
+                        type="date"
+                        value={challengeEndDate}
+                        onChange={() => {}} // Read-only
+                        disabled
+                        help={`Automatically set to ${challengeDuration} days from start date`}
+                      />
+                    </div>
+
+                    <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded text-xs text-yellow-800 dark:text-yellow-200">
+                      <strong>Note:</strong> Sub-articles in this row will become challenge exercises.
+                      Users can mark them complete with checkmark icons instead of stars.
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

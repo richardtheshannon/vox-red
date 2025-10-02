@@ -23,12 +23,25 @@ interface ArticleSlideProps {
   onComplete?: (articleId: string) => Promise<void>
   showAutoRowPlay?: boolean // Optional prop to show auto-row-play button
   onScrollStatusChange?: (hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => void
+  isInChallenge?: boolean // New prop to indicate if this is part of a challenge
+  challengeId?: string // The parent challenge article ID
+  isCompleted?: boolean // Whether this exercise has been completed today
 }
 
-export default function ArticleSlide({ article, onComplete, showAutoRowPlay = false, onScrollStatusChange }: ArticleSlideProps) {
+export default function ArticleSlide({
+  article,
+  onComplete,
+  showAutoRowPlay = false,
+  onScrollStatusChange,
+  isInChallenge = false,
+  challengeId,
+  isCompleted = false
+}: ArticleSlideProps) {
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [isUnpublishing, setIsUnpublishing] = useState(false)
+  const [isChallengeCompleted, setIsChallengeCompleted] = useState(isCompleted)
+  const [isCompletingChallenge, setIsCompletingChallenge] = useState(false)
   const [colors, setColors] = useState<{
     dark: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
     light: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
@@ -290,6 +303,48 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
     }
   }
 
+  const handleChallengeComplete = async () => {
+    if (isCompletingChallenge || isChallengeCompleted) return
+
+    // Show confirmation dialog
+    const confirmed = confirm('Mark this exercise as completed for today?')
+    if (!confirmed) return
+
+    setIsCompletingChallenge(true)
+    try {
+      // Complete the challenge exercise
+      const response = await fetch(`/api/challenges/${challengeId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ subArticleId: article.id }),
+      })
+
+      if (response.ok) {
+        setIsChallengeCompleted(true)
+
+        // Also mark as temporarily unpublished for visual consistency
+        const unpublishResponse = await fetch(`/api/articles/${article.id}/temporarily-unpublish`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (unpublishResponse.ok) {
+          console.log('Challenge exercise completed and marked as unpublished')
+        }
+      } else {
+        console.error('Failed to complete challenge exercise')
+      }
+    } catch (error) {
+      console.error('Error completing challenge exercise:', error)
+    } finally {
+      setIsCompletingChallenge(false)
+    }
+  }
+
   const handleComplete = async () => {
     if (loading) return
 
@@ -353,8 +408,35 @@ export default function ArticleSlide({ article, onComplete, showAutoRowPlay = fa
           right: '15px'
         }}
       >
+        {/* Challenge completion checkmark icon for challenge exercises */}
+        {isInChallenge && (
+          <div className="fixed top-24 left-6 z-40">
+            <button
+              onClick={handleChallengeComplete}
+              disabled={isCompletingChallenge || isChallengeCompleted}
+              className="transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 rounded p-1"
+              aria-label={isChallengeCompleted ? 'Exercise completed' : 'Mark exercise as complete'}
+              title={isChallengeCompleted ? 'Completed today' : 'Click to mark as complete'}
+            >
+              {isCompletingChallenge ? (
+                <span className="material-icons text-3xl text-gray-500 animate-pulse">
+                  hourglass_empty
+                </span>
+              ) : (
+                <span className={`material-icons text-3xl transition-colors ${
+                  isChallengeCompleted
+                    ? 'text-green-500'
+                    : 'text-gray-400 hover:text-green-500'
+                }`}>
+                  {isChallengeCompleted ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Favorite star icon - fixed in top-left corner of article-scroll, clickable */}
-        {article.isFavorite && (
+        {!isInChallenge && article.isFavorite && (
           <div className="fixed top-24 left-6 z-40">
             <button
               onClick={handleStarClick}

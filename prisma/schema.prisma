@@ -40,6 +40,10 @@ model Article {
   unpublishedDate  DateTime? @map("unpublished_date") // when it was temporarily unpublished
   articleType      String?   @map("article_type") @db.VarChar(50) // Type of article: meditation, education, personal, spiritual, routine
   pauseDuration    Int?      @map("pause_duration") // Seconds to pause between MP3s in auto-row-play (5, 10, 15, 30)
+  isChallenge      Boolean   @default(false) @map("is_challenge") // true for challenge rows
+  challengeDuration Int?     @map("challenge_duration") // 30, 60, or 90 days
+  challengeStartDate DateTime? @map("challenge_start_date") // When challenge begins
+  challengeEndDate DateTime? @map("challenge_end_date") // When challenge ends
   rowBackgroundColor String? @map("row_background_color") @db.VarChar(7) // Hex color code for row background in admin (main articles only)
   rowPublishTimeStart String? @map("row_publish_time_start") @db.VarChar(5) // "HH:MM" format for row-level time-based publishing
   rowPublishTimeEnd   String? @map("row_publish_time_end") @db.VarChar(5) // "HH:MM" format for row-level time-based publishing
@@ -53,6 +57,8 @@ model Article {
   parent        Article?  @relation("ArticleToSubArticles", fields: [parentId], references: [id], onDelete: Cascade)
   subArticles   Article[] @relation("ArticleToSubArticles")
   media         Media?    @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  challengeProgress     ChallengeProgress[] @relation("MainChallenge")
+  subChallengeProgress  ChallengeProgress[] @relation("SubChallenge")
 
   @@index([orderPosition])
   @@index([parentId])
@@ -123,4 +129,21 @@ model Settings {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("settings")
+}
+
+model ChallengeProgress {
+  id           String   @id @default(uuid())
+  articleId    String   @map("article_id")
+  article      Article  @relation("MainChallenge", fields: [articleId], references: [id], onDelete: Cascade)
+  subArticleId String   @map("sub_article_id")
+  subArticle   Article  @relation("SubChallenge", fields: [subArticleId], references: [id], onDelete: Cascade)
+  completedAt  DateTime @map("completed_at")
+  day          Int      // Which day of the challenge (1-90)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([articleId])
+  @@index([subArticleId])
+  @@index([completedAt])
+  @@map("challenge_progress")
 }
