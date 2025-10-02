@@ -124,9 +124,12 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     } else {
       // Non-project articles show slides that pass visibility checks
       const slides = []
-      if (shouldShowArticle(mainArticle)) {
+
+      // For challenges, ALWAYS show the main article even if shouldShowArticle returns false
+      if (mainArticle.isChallenge || shouldShowArticle(mainArticle)) {
         slides.push(mainArticle)
       }
+
       // Add sub-articles that pass visibility checks
       const visibleSubArticles = subArticles.filter(sub => shouldShowArticle(sub))
       slides.push(...visibleSubArticles)
@@ -250,8 +253,8 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }
 
-  // Check if this is a completed project
-  if (isCompleted) {
+  // Check if this is a completed project (but not for challenges - they always show stats)
+  if (isCompleted && !mainArticle.isChallenge) {
     return (
       <div className="h-full flex flex-col justify-center items-center p-8">
         <div className="text-center space-y-4">
@@ -312,6 +315,22 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
   }
 
   if (visibleSlides.length === 0) {
+    // For challenges, always show the main challenge slide even if no sub-articles are visible
+    if (mainArticle.isChallenge) {
+      return (
+        <>
+          <AutoRowPlayButton audioTracks={[]} pauseDuration={mainArticle.pauseDuration} />
+          <ChallengeSlide
+            article={{
+              ...mainArticle,
+              challengeDuration: mainArticle.challengeDuration,
+              challengeStartDate: mainArticle.challengeStartDate,
+              challengeEndDate: mainArticle.challengeEndDate
+            }}
+          />
+        </>
+      )
+    }
     return null
   }
 

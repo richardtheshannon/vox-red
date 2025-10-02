@@ -62,7 +62,7 @@ export default function ChallengeProgressGraph({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-32">
         <div className="text-gray-500 dark:text-gray-400">Loading progress...</div>
       </div>
     );
@@ -70,7 +70,7 @@ export default function ChallengeProgressGraph({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-32">
         <div className="text-red-500">Error: {error}</div>
       </div>
     );
