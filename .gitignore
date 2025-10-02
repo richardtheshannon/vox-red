@@ -43,5 +43,7 @@ next-env.d.ts
 # project specific
 _TEMP/
 nul
+backups/
+*.dump
 
 /app/generated/prisma

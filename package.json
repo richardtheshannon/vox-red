@@ -10,6 +10,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
+    "db:backup": "bash scripts/db-backup.sh 2>nul || scripts\\db-backup.bat",
+    "db:restore": "bash scripts/db-restore.sh 2>nul || scripts\\db-restore.bat",
+    "db:sync": "bash scripts/db-sync.sh 2>nul || scripts\\db-sync.bat",
     "reset:daily": "node scripts/daily-reset.mjs"
   },
   "prisma": {
