@@ -43,7 +43,7 @@ export default function HomeIcon() {
       aria-label="Refresh page"
     >
       <Image
-        src="/media/icon-96x96.png"
+        src="/media/favicon.ico"
         alt="Home"
         width={34}
         height={34}

@@ -63,7 +63,7 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
         <div className="max-w-md w-full space-y-8">
           <div className="flex justify-center">
             <Image
-              src="/media/icon-144x144.png"
+              src="/media/favicon.ico"
               alt="Logo"
               width={144}
               height={144}
