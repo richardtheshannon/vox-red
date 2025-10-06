@@ -120,22 +120,27 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           '--swiper-pagination-bullet-inactive-opacity': '0.5',
         } as React.CSSProperties}
       >
-        {articles.map((article, index) => (
-          <SwiperSlide key={article.id}>
-            {article.subArticles && article.subArticles.length > 0 ? (
-              <HorizontalSlides
-                mainArticle={article}
-                subArticles={article.subArticles}
-                slideIndex={index}
-              />
-            ) : (
-              <ArticleSlide
-                article={article}
-                showAutoRowPlay={true}
-              />
-            )}
-          </SwiperSlide>
-        ))}
+        {articles.map((article, index) => {
+          const content = article.subArticles && article.subArticles.length > 0 ? (
+            <HorizontalSlides
+              mainArticle={article}
+              subArticles={article.subArticles}
+              slideIndex={index}
+            />
+          ) : (
+            <ArticleSlide
+              article={article}
+              showAutoRowPlay={true}
+            />
+          )
+
+          // Only render SwiperSlide if content is not null
+          return content ? (
+            <SwiperSlide key={article.id}>
+              {content}
+            </SwiperSlide>
+          ) : null
+        }).filter(Boolean)}
       </Swiper>
     </div>
   )

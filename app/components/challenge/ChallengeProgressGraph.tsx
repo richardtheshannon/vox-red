@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { getAnonymousUserId } from '@/app/lib/userUtils';
 
 interface ChallengeProgressGraphProps {
   challengeId: string;
@@ -37,7 +38,8 @@ export default function ChallengeProgressGraph({
   const fetchProgressData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/challenges/${challengeId}/progress`);
+      const userId = getAnonymousUserId();
+      const response = await fetch(`/api/challenges/${challengeId}/progress?userId=${encodeURIComponent(userId)}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch progress data');

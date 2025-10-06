@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/database';
+import { getUserIdFromRequest } from '@/app/lib/userUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId') || getUserIdFromRequest(request);
 
     // Get the challenge with its sub-articles
     const challenge = await prisma.article.findUnique({
@@ -22,6 +25,7 @@ export async function GET(
           orderBy: { orderPosition: 'asc' },
         },
         challengeProgress: {
+          where: { userId },
           orderBy: { completedAt: 'desc' },
         },
       },
@@ -104,7 +108,8 @@ export async function GET(
     const todayProgress = challenge.challengeProgress.filter(
       (progress) =>
         progress.completedAt >= startOfToday &&
-        progress.completedAt <= endOfToday
+        progress.completedAt <= endOfToday &&
+        progress.userId === userId
     );
 
     const todayCompletedIds = todayProgress.map((p) => p.subArticleId);

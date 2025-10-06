@@ -3,6 +3,7 @@ import { prisma } from '@/app/lib/database'
 import { auth } from '@/app/lib/auth'
 import { articleSchema } from '@/app/lib/validations'
 import { sseManager } from '@/app/lib/realtime'
+import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
 export async function GET() {
   try {
@@ -24,14 +25,16 @@ export async function GET() {
       }
     })
 
-    // Basic server-side filtering for published state only (no time/day filtering here)
+    // Server-side filtering with time/day validation to prevent empty rows
     const publishedArticles = allMainArticles.filter(article => {
-      // For projects: show if main article is published OR has published sub-articles
-      if (article.isProject) {
-        return article.published || article.subArticles.length > 0
+      // For projects and challenges: check if main article OR any sub-article is visible
+      if (article.isProject || article.isChallenge) {
+        const mainVisible = shouldShowArticle(article)
+        const hasVisibleSubArticles = article.subArticles.some(sub => shouldShowArticle(sub))
+        return mainVisible || hasVisibleSubArticles
       }
-      // For standard articles: must be published (time/day filtering happens on client)
-      return article.published
+      // For standard articles: must pass all visibility checks
+      return shouldShowArticle(article)
     })
 
     return NextResponse.json(publishedArticles)

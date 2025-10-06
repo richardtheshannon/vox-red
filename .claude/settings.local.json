@@ -21,7 +21,15 @@
       "Bash(mkdir:*)",
       "WebSearch",
       "WebFetch(domain:essential-audio-player.net)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(cmd /c:*)",
+      "Bash(where pg_dump)",
+      "Bash(cd:*)",
+      "Bash(powershell:*)",
+      "Bash(dir:*)",
+      "Bash(set PGPASSWORD=Superculture1@)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -U postgres -h localhost -p 5432 -l)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

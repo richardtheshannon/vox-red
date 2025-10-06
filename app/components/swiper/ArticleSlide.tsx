@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AudioPlayer from '../AudioPlayer'
 import AutoRowPlayButton from '../AutoRowPlayButton'
+import { getAnonymousUserId } from '@/app/lib/userUtils'
 
 interface ArticleSlideProps {
   article: {
@@ -318,7 +319,10 @@ export default function ArticleSlide({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ subArticleId: article.id }),
+        body: JSON.stringify({
+          subArticleId: article.id,
+          userId: getAnonymousUserId()
+        }),
       })
 
       if (response.ok) {

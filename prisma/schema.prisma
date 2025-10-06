@@ -137,6 +137,7 @@ model ChallengeProgress {
   article      Article  @relation("MainChallenge", fields: [articleId], references: [id], onDelete: Cascade)
   subArticleId String   @map("sub_article_id")
   subArticle   Article  @relation("SubChallenge", fields: [subArticleId], references: [id], onDelete: Cascade)
+  userId       String   @default("global") @map("user_id") // Global challenge progress (shared across all devices)
   completedAt  DateTime @map("completed_at")
   day          Int      // Which day of the challenge (1-90)
   createdAt    DateTime @default(now()) @map("created_at")
@@ -145,5 +146,7 @@ model ChallengeProgress {
   @@index([articleId])
   @@index([subArticleId])
   @@index([completedAt])
+  @@index([userId])
+  @@index([articleId, userId])
   @@map("challenge_progress")
 }

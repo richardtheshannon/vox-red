@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/database';
+import { getUserIdFromRequest } from '@/app/lib/userUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,8 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { subArticleId } = body;
+    const { subArticleId, userId: requestUserId } = body;
+    const userId = requestUserId || getUserIdFromRequest(request);
 
     // Get the challenge article
     const challenge = await prisma.article.findUnique({
@@ -65,6 +67,7 @@ export async function POST(
       where: {
         articleId: id,
         subArticleId,
+        userId,
         completedAt: {
           gte: startOfToday,
           lte: endOfToday,
@@ -84,6 +87,7 @@ export async function POST(
       data: {
         articleId: id,
         subArticleId,
+        userId,
         completedAt: now,
         day: currentDay,
       },
