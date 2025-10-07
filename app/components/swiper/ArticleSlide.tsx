@@ -537,17 +537,17 @@ export default function ArticleSlide({
 
       {/* Complete button for project slides */}
       {article.isProject && (
-        <div className="absolute bottom-6 right-6 z-50">
+        <div className="fixed bottom-20 right-6 z-40">
           <button
             onClick={handleComplete}
             disabled={loading}
-            className="transition-opacity hover:opacity-70"
+            className="transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 rounded p-1"
             aria-label="Mark as complete"
           >
             {loading ? (
-              <span className="material-icons text-2xl text-gray-500">hourglass_empty</span>
+              <span className="material-icons text-3xl text-gray-500 animate-pulse">hourglass_empty</span>
             ) : (
-              <span className="material-icons text-2xl text-green-600">how_to_reg</span>
+              <span className="material-icons text-3xl text-green-600">how_to_reg</span>
             )}
           </button>
         </div>
