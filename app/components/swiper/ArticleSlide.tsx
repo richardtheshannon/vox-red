@@ -100,16 +100,24 @@ export default function ArticleSlide({
     const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 5
     const isAtTop = element.scrollTop < 5
 
+
+
     onScrollStatusChange(hasOverflow, isAtBottom, isAtTop)
-  }, [onScrollStatusChange])
+  }, [onScrollStatusChange, article.id])
 
   // Monitor scroll position and content changes
   useEffect(() => {
     const element = scrollRef.current
     if (!element) return
 
-    // Check initial state
-    checkScrollStatus()
+    // Check initial state with a slight delay to ensure content is rendered
+    const checkInitialState = () => {
+      setTimeout(() => {
+        checkScrollStatus()
+      }, 100)
+    }
+
+    checkInitialState()
 
     // Listen for scroll events
     const handleScroll = () => {
@@ -120,14 +128,23 @@ export default function ArticleSlide({
 
     // Also check when content might have changed (using ResizeObserver)
     const resizeObserver = new ResizeObserver(() => {
-      checkScrollStatus()
+      // Debounce resize checks to avoid excessive calls
+      setTimeout(() => {
+        checkScrollStatus()
+      }, 50)
     })
 
     resizeObserver.observe(element)
 
+    // Check again after images or other content might have loaded
+    const checkAfterLoad = setTimeout(() => {
+      checkScrollStatus()
+    }, 500)
+
     return () => {
       element.removeEventListener('scroll', handleScroll)
       resizeObserver.disconnect()
+      clearTimeout(checkAfterLoad)
     }
   }, [checkScrollStatus])
 
@@ -414,7 +431,7 @@ export default function ArticleSlide({
       >
         {/* Challenge completion checkmark icon for challenge exercises */}
         {isInChallenge && (
-          <div className="fixed top-24 left-6 z-40">
+          <div className="fixed bottom-6 right-6 z-40">
             <button
               onClick={handleChallengeComplete}
               disabled={isCompletingChallenge || isChallengeCompleted}
@@ -516,6 +533,7 @@ export default function ArticleSlide({
           </div>
         </div>
       </div>
+
 
       {/* Complete button for project slides */}
       {article.isProject && (

@@ -150,11 +150,12 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [])
 
-  // Add wheel event interceptor
+  // Add comprehensive event interceptors
   useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      const { hasOverflow, isAtBottom } = currentSlideScrollState
+    const { hasOverflow, isAtBottom } = currentSlideScrollState
+    const shouldBlockNavigation = hasOverflow && !isAtBottom
 
+    const handleWheel = (e: WheelEvent) => {
       // If content has overflow and is not at bottom, prevent horizontal scrolling
       if (hasOverflow && !isAtBottom && Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
         // Let vertical scrolling happen in article-scroll div
@@ -168,16 +169,49 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       }
     }
 
-    // Add capture phase listener to intercept before Swiper
+    const handleTouchStart = (e: TouchEvent) => {
+      if (shouldBlockNavigation) {
+        // Store initial touch position to determine swipe direction
+        const touch = e.touches[0]
+        if (touch) {
+          ;(e.target as any)._touchStartX = touch.clientX
+          ;(e.target as any)._touchStartY = touch.clientY
+        }
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (shouldBlockNavigation) {
+        const touch = e.touches[0]
+        const target = e.target as any
+        if (touch && target._touchStartX !== undefined && target._touchStartY !== undefined) {
+          const deltaX = Math.abs(touch.clientX - target._touchStartX)
+          const deltaY = Math.abs(touch.clientY - target._touchStartY)
+
+          // If horizontal swipe is more significant than vertical, block it
+          if (deltaX > deltaY && deltaX > 20) {
+            e.preventDefault()
+            e.stopPropagation()
+          }
+        }
+      }
+    }
+
+    // Add capture phase listeners to intercept before Swiper
     document.addEventListener('wheel', handleWheel, { passive: false, capture: true })
+    document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true })
 
     return () => {
       document.removeEventListener('wheel', handleWheel, { capture: true })
+      document.removeEventListener('touchstart', handleTouchStart, { capture: true })
+      document.removeEventListener('touchmove', handleTouchMove, { capture: true })
     }
   }, [currentSlideScrollState])
 
   const handleScrollStatusChange = useCallback((hasOverflow: boolean, isAtBottom: boolean, isAtTop: boolean) => {
     setCurrentSlideScrollState({ hasOverflow, isAtBottom, isAtTop })
+
 
     // Update swiper's behavior based on scroll state
     if (swiperRef.current) {
@@ -332,13 +366,27 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
   return (
     <>
       <AutoRowPlayButton audioTracks={audioTracks} pauseDuration={mainArticle.pauseDuration} />
+
+
       <Swiper
       onSwiper={(swiper) => {
         swiperRef.current = swiper
-        // Initially disable navigation until we know the scroll state
+        // Start with navigation enabled, but it will be controlled by scroll status
         swiper.allowTouchMove = true
         swiper.allowSlideNext = true
         swiper.allowSlidePrev = true
+
+        // Force check of current slide's scroll status after swiper is ready
+        setTimeout(() => {
+          if (currentSlideScrollState.hasOverflow && !currentSlideScrollState.isAtBottom) {
+            swiper.allowTouchMove = false
+            swiper.allowSlideNext = false
+            swiper.allowSlidePrev = true
+            if (swiper.mousewheel) {
+              swiper.mousewheel.disable()
+            }
+          }
+        }, 200)
       }}
       onSlideChange={() => {
         // Reset scroll state when slide changes - default to allowing navigation
