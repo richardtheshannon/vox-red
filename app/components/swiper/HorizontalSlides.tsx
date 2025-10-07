@@ -215,9 +215,10 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       if (shouldBlockNavigation) {
         // Store initial touch position to determine swipe direction
         const touch = e.touches[0]
-        if (touch) {
-          ;(e.target as any)._touchStartX = touch.clientX
-          ;(e.target as any)._touchStartY = touch.clientY
+        if (touch && e.target) {
+          const target = e.target as HTMLElement & { _touchStartX?: number; _touchStartY?: number }
+          target._touchStartX = touch.clientX
+          target._touchStartY = touch.clientY
         }
       }
     }
@@ -225,7 +226,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     const handleTouchMove = (e: TouchEvent) => {
       if (shouldBlockNavigation) {
         const touch = e.touches[0]
-        const target = e.target as any
+        const target = e.target as HTMLElement & { _touchStartX?: number; _touchStartY?: number }
         if (touch && target._touchStartX !== undefined && target._touchStartY !== undefined) {
           const deltaX = Math.abs(touch.clientX - target._touchStartX)
           const deltaY = Math.abs(touch.clientY - target._touchStartY)
