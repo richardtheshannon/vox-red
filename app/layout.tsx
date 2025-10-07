@@ -3,8 +3,6 @@ import { Unica_One, Roboto } from "next/font/google";
 import "./globals.css";
 import SessionProvider from './components/providers/SessionProvider';
 import ConditionalThemeToggle from './components/ConditionalThemeToggle';
-import AdminSettingsIcon from './components/AdminSettingsIcon';
-import HomeIcon from './components/HomeIcon';
 
 const unicaOne = Unica_One({
   weight: '400',
@@ -58,8 +56,6 @@ export default function RootLayout({
       >
         <SessionProvider>
           <ConditionalThemeToggle />
-          <AdminSettingsIcon />
-          <HomeIcon />
           {children}
         </SessionProvider>
       </body>

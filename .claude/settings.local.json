@@ -29,7 +29,8 @@
       "Bash(dir:*)",
       "Bash(set PGPASSWORD=Superculture1@)",
       "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -U postgres -h localhost -p 5432 -l)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(rd:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
+import { Navigation, Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import ChallengeSlide from '../challenge/ChallengeSlide'
@@ -10,7 +10,7 @@ import AutoRowPlayButton from '../AutoRowPlayButton'
 import { shouldShowArticle } from '@/app/lib/publishingUtils'
 
 import 'swiper/css'
-import 'swiper/css/pagination'
+import 'swiper/css/navigation'
 
 interface Article {
   id: string
@@ -48,6 +48,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
   const [visibleSlides, setVisibleSlides] = useState<Article[]>([])
   const [isCompleted, setIsCompleted] = useState(false)
   const [completedExercises, setCompletedExercises] = useState<string[]>([])
+  const [currentHorizontalIndex, setCurrentHorizontalIndex] = useState(0)
   const [audioTracks, setAudioTracks] = useState<Array<{
     url: string
     title: string
@@ -81,6 +82,23 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [mainArticle.isChallenge, fetchCompletedExercises])
 
+  // Broadcast horizontal navigation state
+  const broadcastHorizontalState = useCallback(() => {
+    const canGoPrevious = currentHorizontalIndex > 0
+    const canGoNext = currentHorizontalIndex < visibleSlides.length - 1
+    const hasHorizontalSlides = visibleSlides.length > 1
+
+    window.dispatchEvent(new CustomEvent('horizontalNavigationState', {
+      detail: {
+        canGoPrevious,
+        canGoNext,
+        hasHorizontalSlides,
+        currentIndex: currentHorizontalIndex,
+        totalSlides: visibleSlides.length
+      }
+    }))
+  }, [currentHorizontalIndex, visibleSlides.length])
+
   // Update audio tracks whenever visible slides change
   useEffect(() => {
     const tracks: Array<{
@@ -103,7 +121,15 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     })
 
     setAudioTracks(tracks)
-  }, [visibleSlides])
+
+    // Broadcast horizontal navigation state when slides change
+    broadcastHorizontalState()
+  }, [visibleSlides, broadcastHorizontalState])
+
+  // Broadcast state when current index changes
+  useEffect(() => {
+    broadcastHorizontalState()
+  }, [broadcastHorizontalState])
 
   useEffect(() => {
     // Initialize visible slides - only show articles that pass shouldShowArticle check
@@ -132,7 +158,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [mainArticle, subArticles])
 
-  // Listen for horizontal navigation event from auto-play
+  // Listen for horizontal navigation events
   useEffect(() => {
     const handleNavigateToHorizontalSlide = (event: CustomEvent) => {
       const { horizontalIndex } = event.detail
@@ -143,10 +169,26 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       }
     }
 
+    const handleHorizontalPrevious = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slidePrev()
+      }
+    }
+
+    const handleHorizontalNext = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slideNext()
+      }
+    }
+
     window.addEventListener('navigateToHorizontalSlide', handleNavigateToHorizontalSlide as EventListener)
+    window.addEventListener('horizontalSlidePrevious', handleHorizontalPrevious)
+    window.addEventListener('horizontalSlideNext', handleHorizontalNext)
 
     return () => {
       window.removeEventListener('navigateToHorizontalSlide', handleNavigateToHorizontalSlide as EventListener)
+      window.removeEventListener('horizontalSlidePrevious', handleHorizontalPrevious)
+      window.removeEventListener('horizontalSlideNext', handleHorizontalNext)
     }
   }, [])
 
@@ -388,7 +430,10 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
           }
         }, 200)
       }}
-      onSlideChange={() => {
+      onSlideChange={(swiper) => {
+        // Update current horizontal index
+        setCurrentHorizontalIndex(swiper.activeIndex)
+
         // Reset scroll state when slide changes - default to allowing navigation
         setCurrentSlideScrollState({ hasOverflow: false, isAtBottom: true, isAtTop: true })
         // Re-enable all navigation temporarily (will be updated by the new slide's scroll status)
@@ -401,15 +446,12 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
           }
         }
       }}
-      modules={[Pagination, Keyboard, Mousewheel]}
+      modules={[Navigation, Keyboard, Mousewheel]}
       direction="horizontal"
       slidesPerView={1}
-      pagination={{
-        clickable: true,
-        dynamicBullets: true,
-        horizontalClass: 'swiper-pagination-horizontal',
-        bulletClass: 'swiper-pagination-bullet',
-        bulletActiveClass: 'swiper-pagination-bullet-active',
+      navigation={{
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
       }}
       keyboard={{
         enabled: true,
@@ -425,10 +467,8 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       nested={true}
       className="h-full w-full"
       style={{
-        '--swiper-pagination-color': '#ffffff',
-        '--swiper-pagination-bullet-inactive-color': '#ffffff',
-        '--swiper-pagination-bullet-inactive-opacity': '0.3',
-        '--swiper-pagination-bottom': '40px',
+        '--swiper-navigation-color': '#ffffff',
+        '--swiper-navigation-size': '24px',
       } as React.CSSProperties}
     >
       {visibleSlides.map((article) => {

@@ -153,40 +153,66 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Swiper customizations */
-.swiper-pagination-bullet {
-  opacity: 0.5 !important;
+/* Navigation arrows styling */
+.swiper-button-next,
+.swiper-button-prev {
+  width: 48px !important;
+  height: 48px !important;
+  margin-top: -24px !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  transition: all 0.3s ease !important;
+  z-index: 10 !important;
 }
 
-.swiper-pagination-bullet-active {
-  opacity: 1 !important;
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(0, 0, 0, 0.7) !important;
+  transform: scale(1.1) !important;
 }
 
-/* Horizontal swiper (nested) pagination styling */
-.swiper-horizontal > .swiper-pagination-horizontal {
-  bottom: 40px !important;
-}
-
-.swiper-horizontal .swiper-pagination-bullet {
-  width: 10px !important;
-  height: 10px !important;
-  background: #ffffff !important;
-  opacity: 0.4 !important;
-  margin: 0 6px !important;
-}
-
-.swiper-horizontal .swiper-pagination-bullet-active {
-  opacity: 1 !important;
-  background: #ffffff !important;
-}
-
-/* Vertical swiper pagination styling */
-.swiper-vertical > .swiper-pagination-vertical {
+.swiper-button-next {
   right: 20px !important;
 }
 
-.swiper-vertical .swiper-pagination-bullet {
-  width: 8px !important;
-  height: 8px !important;
+.swiper-button-prev {
+  left: 20px !important;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+/* Dark theme navigation arrows */
+.dark .swiper-button-next,
+.dark .swiper-button-prev {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.dark .swiper-button-next:hover,
+.dark .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Hide navigation arrows when disabled */
+.swiper-button-disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+.swiper-button-disabled:hover {
+  transform: none !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .swiper-button-disabled:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Hide Next.js development indicators */

@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Pagination, Keyboard, Mousewheel } from 'swiper/modules'
+import { Keyboard, Mousewheel } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import ArticleSlide from './ArticleSlide'
 import HorizontalSlides from './HorizontalSlides'
+import BottomNavigationFooter from '../BottomNavigationFooter'
 import { useRealtime } from '@/app/hooks/useRealtime'
 
 import 'swiper/css'
-import 'swiper/css/pagination'
 
 interface Article {
   id: string
@@ -40,6 +40,12 @@ interface ArticlesSwiperProps {
 
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
+  const [horizontalNavState, setHorizontalNavState] = useState({
+    canGoPrevious: false,
+    canGoNext: false,
+    hasHorizontalSlides: false
+  })
   const { refreshTrigger } = useRealtime()
   const swiperRef = useRef<SwiperType | null>(null)
 
@@ -61,6 +67,28 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     }
   }, [refreshTrigger])
 
+  // Vertical navigation functions
+  const goToPrevious = () => {
+    if (swiperRef.current && currentSlideIndex > 0) {
+      swiperRef.current.slideTo(currentSlideIndex - 1)
+    }
+  }
+
+  const goToNext = () => {
+    if (swiperRef.current && currentSlideIndex < articles.length - 1) {
+      swiperRef.current.slideTo(currentSlideIndex + 1)
+    }
+  }
+
+  // Horizontal navigation functions
+  const goToHorizontalPrevious = () => {
+    window.dispatchEvent(new CustomEvent('horizontalSlidePrevious'))
+  }
+
+  const goToHorizontalNext = () => {
+    window.dispatchEvent(new CustomEvent('horizontalSlideNext'))
+  }
+
   // Listen for navigation events
   useEffect(() => {
     const handleNavigateToFirst = () => {
@@ -69,10 +97,21 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       }
     }
 
+    const handleHorizontalNavigationState = (event: CustomEvent) => {
+      const { canGoPrevious, canGoNext, hasHorizontalSlides } = event.detail
+      setHorizontalNavState({
+        canGoPrevious,
+        canGoNext,
+        hasHorizontalSlides
+      })
+    }
+
     window.addEventListener('navigateToFirstSlide', handleNavigateToFirst)
+    window.addEventListener('horizontalNavigationState', handleHorizontalNavigationState as EventListener)
 
     return () => {
       window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
+      window.removeEventListener('horizontalNavigationState', handleHorizontalNavigationState as EventListener)
     }
   }, [])
 
@@ -96,17 +135,13 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           swiperRef.current = swiper
         }}
         onSlideChange={(swiper) => {
-          const currentSlideIndex = swiper.activeIndex
-          console.log('ArticlesSwiper: Slide changed to index:', currentSlideIndex)
+          const activeIndex = swiper.activeIndex
+          setCurrentSlideIndex(activeIndex)
+          console.log('ArticlesSwiper: Slide changed to index:', activeIndex)
         }}
-        modules={[Pagination, Keyboard, Mousewheel]}
+        modules={[Keyboard, Mousewheel]}
         direction="vertical"
         slidesPerView={1}
-        pagination={{
-          clickable: true,
-          bulletClass: 'swiper-pagination-bullet bg-white bg-opacity-50',
-          bulletActiveClass: 'swiper-pagination-bullet-active bg-white',
-        }}
         keyboard={{
           enabled: true,
           onlyInViewport: true,
@@ -114,11 +149,6 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
         mousewheel={true}
         speed={600}
         className="h-full w-full"
-        style={{
-          '--swiper-pagination-color': '#ffffff',
-          '--swiper-pagination-bullet-inactive-color': '#ffffff',
-          '--swiper-pagination-bullet-inactive-opacity': '0.5',
-        } as React.CSSProperties}
       >
         {articles.map((article, index) => {
           const content = article.subArticles && article.subArticles.length > 0 ? (
@@ -142,6 +172,17 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           ) : null
         }).filter(Boolean)}
       </Swiper>
+
+      <BottomNavigationFooter
+        onVerticalPrevious={goToPrevious}
+        onVerticalNext={goToNext}
+        canGoVerticalPrevious={currentSlideIndex > 0}
+        canGoVerticalNext={currentSlideIndex < articles.length - 1}
+        onHorizontalPrevious={goToHorizontalPrevious}
+        onHorizontalNext={goToHorizontalNext}
+        canGoHorizontalPrevious={horizontalNavState.canGoPrevious}
+        canGoHorizontalNext={horizontalNavState.canGoNext}
+      />
     </div>
   )
 }
