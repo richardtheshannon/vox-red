@@ -88,10 +88,14 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     const canGoNext = currentHorizontalIndex < visibleSlides.length - 1
     const hasHorizontalSlides = visibleSlides.length > 1
 
+    // Check actual swiper allowance states
+    const swiperAllowsPrevious = swiperRef.current ? swiperRef.current.allowSlidePrev : true
+    const swiperAllowsNext = swiperRef.current ? swiperRef.current.allowSlideNext : true
+
     window.dispatchEvent(new CustomEvent('horizontalNavigationState', {
       detail: {
-        canGoPrevious,
-        canGoNext,
+        canGoPrevious: canGoPrevious && swiperAllowsPrevious,
+        canGoNext: canGoNext && swiperAllowsNext,
         hasHorizontalSlides,
         currentIndex: currentHorizontalIndex,
         totalSlides: visibleSlides.length
@@ -122,8 +126,10 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
     setAudioTracks(tracks)
 
-    // Broadcast horizontal navigation state when slides change
-    broadcastHorizontalState()
+    // Broadcast initial state after swiper is ready (when slides change)
+    if (swiperRef.current) {
+      setTimeout(() => broadcastHorizontalState(), 100)
+    }
   }, [visibleSlides, broadcastHorizontalState])
 
   // Broadcast state when current index changes
@@ -275,6 +281,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
           swiperRef.current.mousewheel.enable()
         }
       }
+
+      // Broadcast state when scroll status changes navigation allowance
+      setTimeout(() => broadcastHorizontalState(), 10)
     }
   }, [])
 
@@ -446,6 +455,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
             swiperRef.current.mousewheel.enable()
           }
         }
+
+        // Broadcast state after slide change and index update
+        setTimeout(() => broadcastHorizontalState(), 50)
       }}
       modules={[Navigation, Keyboard, Mousewheel]}
       direction="horizontal"
