@@ -344,18 +344,7 @@ export default function ArticleSlide({
 
       if (response.ok) {
         setIsChallengeCompleted(true)
-
-        // Also mark as temporarily unpublished for visual consistency
-        const unpublishResponse = await fetch(`/api/articles/${article.id}/temporarily-unpublish`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        if (unpublishResponse.ok) {
-          console.log('Challenge exercise completed and marked as unpublished')
-        }
+        console.log('Challenge exercise completed and marked as unpublished')
       } else {
         console.error('Failed to complete challenge exercise')
       }

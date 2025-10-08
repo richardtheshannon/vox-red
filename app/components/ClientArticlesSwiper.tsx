@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import LoadingSpinner from './ui/LoadingSpinner'
 import { shouldShowArticle } from '@/app/lib/publishingUtils'
+import { useRealtime } from '@/app/hooks/useRealtime'
 
 const ArticlesSwiper = dynamic(() => import('./swiper/ArticlesSwiper'), {
   ssr: false,
@@ -48,6 +49,8 @@ interface ClientArticlesSwiperProps {
 
 export default function ClientArticlesSwiper({ initialArticles }: ClientArticlesSwiperProps) {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [articles, setArticles] = useState(initialArticles)
+  const { refreshTrigger } = useRealtime()
 
   // Update time every minute to check if articles should appear/disappear
   useEffect(() => {
@@ -57,6 +60,24 @@ export default function ClientArticlesSwiper({ initialArticles }: ClientArticles
 
     return () => clearInterval(interval)
   }, [])
+
+  // Refresh articles when SSE notifications are received
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      const fetchArticles = async () => {
+        try {
+          const response = await fetch('/api/articles')
+          if (response.ok) {
+            const updatedArticles = await response.json()
+            setArticles(updatedArticles)
+          }
+        } catch (error) {
+          console.error('Error fetching updated articles:', error)
+        }
+      }
+      fetchArticles()
+    }
+  }, [refreshTrigger])
 
   // Helper function to determine effective publishing settings for an article
   const getEffectivePublishingSettings = (article: Article, parentArticle?: Article) => {
@@ -97,7 +118,7 @@ export default function ClientArticlesSwiper({ initialArticles }: ClientArticles
 
   // Filter articles based on current browser time and day
   const filteredArticles = useMemo(() => {
-    return initialArticles.filter(article => {
+    return articles.filter(article => {
       // Filter sub-articles first
       if (article.subArticles) {
         const filteredSubArticles = article.subArticles.filter(subArticle => {
@@ -120,7 +141,7 @@ export default function ClientArticlesSwiper({ initialArticles }: ClientArticles
       return mainArticleShows || hasPublishedSubArticles
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArticles, currentTime])
+  }, [articles, currentTime])
 
   return <ArticlesSwiper initialArticles={filteredArticles} />
 }

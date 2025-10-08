@@ -113,6 +113,23 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
 
   return (
     <div className="h-screen w-full relative">
+      {/* Home Icon - Top Left Corner */}
+      <button
+        onClick={() => {
+          if (swiperRef.current) {
+            swiperRef.current.slideTo(0)
+          }
+        }}
+        className="fixed top-6 left-6 z-50 w-8 h-8 flex items-center justify-center transition-all duration-200 group"
+        aria-label="Go to first slide"
+      >
+        <img
+          src="/media/icon-96x96.png"
+          alt="Home"
+          className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity duration-200"
+        />
+      </button>
+
       <Swiper
         onSwiper={(swiper) => {
           swiperRef.current = swiper

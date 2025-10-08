@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/database';
 import { getUserIdFromRequest } from '@/app/lib/userUtils';
+import { sseManager } from '@/app/lib/realtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,9 @@ export async function POST(
         unpublishedDate: now,
       },
     });
+
+    // Notify of changes via SSE
+    sseManager.notifyArticleChange('updated', subArticleId);
 
     return NextResponse.json({
       message: 'Challenge exercise completed',
