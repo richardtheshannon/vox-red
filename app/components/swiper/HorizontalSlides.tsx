@@ -82,20 +82,18 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
     }
   }, [mainArticle.isChallenge, fetchCompletedExercises])
 
-  // Broadcast horizontal navigation state
+  // Broadcast horizontal navigation state (infinite loop - always enabled)
   const broadcastHorizontalState = useCallback(() => {
-    const canGoPrevious = currentHorizontalIndex > 0
-    const canGoNext = currentHorizontalIndex < visibleSlides.length - 1
     const hasHorizontalSlides = visibleSlides.length > 1
 
-    // Check actual swiper allowance states
+    // Check actual swiper allowance states for scroll priority only
     const swiperAllowsPrevious = swiperRef.current ? swiperRef.current.allowSlidePrev : true
     const swiperAllowsNext = swiperRef.current ? swiperRef.current.allowSlideNext : true
 
     window.dispatchEvent(new CustomEvent('horizontalNavigationState', {
       detail: {
-        canGoPrevious: canGoPrevious && swiperAllowsPrevious,
-        canGoNext: canGoNext && swiperAllowsNext,
+        canGoPrevious: hasHorizontalSlides && swiperAllowsPrevious,
+        canGoNext: hasHorizontalSlides && swiperAllowsNext,
         hasHorizontalSlides,
         currentIndex: currentHorizontalIndex,
         totalSlides: visibleSlides.length
@@ -126,10 +124,10 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
 
     setAudioTracks(tracks)
 
-    // Broadcast initial state after swiper is ready (when slides change)
-    if (swiperRef.current) {
-      setTimeout(() => broadcastHorizontalState(), 100)
-    }
+    // Broadcast initial state immediately and after delay to ensure proper timing
+    broadcastHorizontalState()
+    setTimeout(() => broadcastHorizontalState(), 100)
+    setTimeout(() => broadcastHorizontalState(), 300)
   }, [visibleSlides, broadcastHorizontalState])
 
   // Broadcast state when current index changes
@@ -335,6 +333,39 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
   }
 
 
+  // Handle broadcasting for different slide states
+  useEffect(() => {
+    const broadcastState = () => {
+      if (visibleSlides.length === 1) {
+        // Single slide - no horizontal navigation
+        window.dispatchEvent(new CustomEvent('horizontalNavigationState', {
+          detail: {
+            canGoPrevious: false,
+            canGoNext: false,
+            hasHorizontalSlides: false,
+            currentIndex: 0,
+            totalSlides: 1
+          }
+        }))
+      } else if (visibleSlides.length === 0 || (isCompleted && mainArticle.isChallenge)) {
+        // Empty slides or completed challenges - no horizontal navigation
+        window.dispatchEvent(new CustomEvent('horizontalNavigationState', {
+          detail: {
+            canGoPrevious: false,
+            canGoNext: false,
+            hasHorizontalSlides: false,
+            currentIndex: 0,
+            totalSlides: visibleSlides.length === 0 ? 0 : 1
+          }
+        }))
+      }
+    }
+
+    broadcastState()
+    setTimeout(() => broadcastState(), 100)
+    setTimeout(() => broadcastState(), 300)
+  }, [visibleSlides.length, isCompleted, mainArticle.isChallenge])
+
   if (visibleSlides.length === 1) {
     // If only one slide, show it without swiper but with auto-row-play button
     const slide = visibleSlides[0]
@@ -428,6 +459,11 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
         swiper.allowSlideNext = true
         swiper.allowSlidePrev = true
 
+        // Broadcast initial state when swiper is ready
+        setTimeout(() => broadcastHorizontalState(), 50)
+        setTimeout(() => broadcastHorizontalState(), 150)
+        setTimeout(() => broadcastHorizontalState(), 350)
+
         // Force check of current slide's scroll status after swiper is ready
         setTimeout(() => {
           if (currentSlideScrollState.hasOverflow && !currentSlideScrollState.isAtBottom) {
@@ -462,6 +498,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
       modules={[Navigation, Keyboard, Mousewheel]}
       direction="horizontal"
       slidesPerView={1}
+      loop={true}
       navigation={{
         nextEl: '.swiper-button-next',
         prevEl: '.swiper-button-prev',

@@ -7,24 +7,20 @@ interface BottomNavigationFooterProps {
   // Vertical navigation (main slides)
   onVerticalPrevious: () => void
   onVerticalNext: () => void
-  canGoVerticalPrevious: boolean
-  canGoVerticalNext: boolean
+  canGoVerticalPrevious?: boolean // Optional for infinite loop mode
+  canGoVerticalNext?: boolean // Optional for infinite loop mode
   // Horizontal navigation (sub-articles)
   onHorizontalPrevious: () => void
   onHorizontalNext: () => void
-  canGoHorizontalPrevious: boolean
-  canGoHorizontalNext: boolean
+  canGoHorizontalPrevious?: boolean // Optional for infinite loop mode
+  canGoHorizontalNext?: boolean // Optional for infinite loop mode
 }
 
 export default function BottomNavigationFooter({
   onVerticalPrevious,
   onVerticalNext,
-  canGoVerticalPrevious,
-  canGoVerticalNext,
   onHorizontalPrevious,
-  onHorizontalNext,
-  canGoHorizontalPrevious,
-  canGoHorizontalNext
+  onHorizontalNext
 }: BottomNavigationFooterProps) {
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -59,10 +55,7 @@ export default function BottomNavigationFooter({
         <div className="flex items-center space-x-2">
           <button
             onClick={onVerticalPrevious}
-            disabled={!canGoVerticalPrevious}
-            className={`p-2 transition-opacity ${
-              canGoVerticalPrevious ? 'hover:opacity-70' : 'opacity-30 cursor-not-allowed'
-            }`}
+            className="p-2 transition-opacity hover:opacity-70"
             aria-label="Previous slide"
           >
             <span className="material-icons text-white text-2xl">
@@ -72,10 +65,7 @@ export default function BottomNavigationFooter({
 
           <button
             onClick={onVerticalNext}
-            disabled={!canGoVerticalNext}
-            className={`p-2 transition-opacity ${
-              canGoVerticalNext ? 'hover:opacity-70' : 'opacity-30 cursor-not-allowed'
-            }`}
+            className="p-2 transition-opacity hover:opacity-70"
             aria-label="Next slide"
           >
             <span className="material-icons text-white text-2xl">
@@ -88,10 +78,7 @@ export default function BottomNavigationFooter({
         <div className="flex items-center space-x-2">
           <button
             onClick={onHorizontalPrevious}
-            disabled={!canGoHorizontalPrevious}
-            className={`p-2 transition-opacity ${
-              canGoHorizontalPrevious ? 'hover:opacity-70' : 'opacity-30 cursor-not-allowed'
-            }`}
+            className="p-2 transition-opacity hover:opacity-70"
             aria-label="Previous horizontal slide"
           >
             <span className="material-icons text-white text-2xl">
@@ -101,10 +88,7 @@ export default function BottomNavigationFooter({
 
           <button
             onClick={onHorizontalNext}
-            disabled={!canGoHorizontalNext}
-            className={`p-2 transition-opacity ${
-              canGoHorizontalNext ? 'hover:opacity-70' : 'opacity-30 cursor-not-allowed'
-            }`}
+            className="p-2 transition-opacity hover:opacity-70"
             aria-label="Next horizontal slide"
           >
             <span className="material-icons text-white text-2xl">

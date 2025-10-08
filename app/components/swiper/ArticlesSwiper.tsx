@@ -40,12 +40,6 @@ interface ArticlesSwiperProps {
 
 export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps) {
   const [articles, setArticles] = useState(initialArticles)
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
-  const [horizontalNavState, setHorizontalNavState] = useState({
-    canGoPrevious: false,
-    canGoNext: false,
-    hasHorizontalSlides: false
-  })
   const { refreshTrigger } = useRealtime()
   const swiperRef = useRef<SwiperType | null>(null)
 
@@ -67,16 +61,16 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
     }
   }, [refreshTrigger])
 
-  // Vertical navigation functions
+  // Vertical navigation functions (infinite loop)
   const goToPrevious = () => {
-    if (swiperRef.current && currentSlideIndex > 0) {
-      swiperRef.current.slideTo(currentSlideIndex - 1)
+    if (swiperRef.current) {
+      swiperRef.current.slidePrev()
     }
   }
 
   const goToNext = () => {
-    if (swiperRef.current && currentSlideIndex < articles.length - 1) {
-      swiperRef.current.slideTo(currentSlideIndex + 1)
+    if (swiperRef.current) {
+      swiperRef.current.slideNext()
     }
   }
 
@@ -97,21 +91,10 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       }
     }
 
-    const handleHorizontalNavigationState = (event: CustomEvent) => {
-      const { canGoPrevious, canGoNext, hasHorizontalSlides } = event.detail
-      setHorizontalNavState({
-        canGoPrevious,
-        canGoNext,
-        hasHorizontalSlides
-      })
-    }
-
     window.addEventListener('navigateToFirstSlide', handleNavigateToFirst)
-    window.addEventListener('horizontalNavigationState', handleHorizontalNavigationState as EventListener)
 
     return () => {
       window.removeEventListener('navigateToFirstSlide', handleNavigateToFirst)
-      window.removeEventListener('horizontalNavigationState', handleHorizontalNavigationState as EventListener)
     }
   }, [])
 
@@ -135,13 +118,12 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
           swiperRef.current = swiper
         }}
         onSlideChange={(swiper) => {
-          const activeIndex = swiper.activeIndex
-          setCurrentSlideIndex(activeIndex)
-          console.log('ArticlesSwiper: Slide changed to index:', activeIndex)
+          console.log('ArticlesSwiper: Slide changed to index:', swiper.activeIndex)
         }}
         modules={[Keyboard, Mousewheel]}
         direction="vertical"
         slidesPerView={1}
+        loop={true}
         keyboard={{
           enabled: true,
           onlyInViewport: true,
@@ -176,12 +158,8 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       <BottomNavigationFooter
         onVerticalPrevious={goToPrevious}
         onVerticalNext={goToNext}
-        canGoVerticalPrevious={currentSlideIndex > 0}
-        canGoVerticalNext={currentSlideIndex < articles.length - 1}
         onHorizontalPrevious={goToHorizontalPrevious}
         onHorizontalNext={goToHorizontalNext}
-        canGoHorizontalPrevious={horizontalNavState.canGoPrevious}
-        canGoHorizontalNext={horizontalNavState.canGoNext}
       />
     </div>
   )
