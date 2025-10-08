@@ -400,7 +400,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
           }}
           onComplete={handleSlideComplete}
           onScrollStatusChange={handleScrollStatusChange}
-          isInChallenge={mainArticle.isChallenge}
+          isInChallenge={mainArticle.isChallenge && slide.id !== mainArticle.id}
           challengeId={mainArticle.id}
           isCompleted={completedExercises.includes(slide.id)}
         />
@@ -551,7 +551,7 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
               }}
               onComplete={handleSlideComplete}
               onScrollStatusChange={handleScrollStatusChange}
-              isInChallenge={mainArticle.isChallenge}
+              isInChallenge={mainArticle.isChallenge && article.id !== mainArticle.id}
               challengeId={mainArticle.id}
               isCompleted={completedExercises.includes(article.id)}
             />
