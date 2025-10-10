@@ -36,6 +36,10 @@ interface Article {
   challengeDuration?: number | null
   challengeStartDate?: Date | string | null
   challengeEndDate?: Date | string | null
+  media?: {
+    id: string
+    url: string
+  } | null
 }
 
 interface HorizontalSlidesProps {
@@ -382,7 +386,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
               articleType: slide.articleType || mainArticle.articleType,
               challengeDuration: mainArticle.challengeDuration,
               challengeStartDate: mainArticle.challengeStartDate,
-              challengeEndDate: mainArticle.challengeEndDate
+              challengeEndDate: mainArticle.challengeEndDate,
+              audioUrl: slide.audioUrl,
+              media: slide.media
             }}
           />
         </>
@@ -418,7 +424,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
             ...mainArticle,
             challengeDuration: mainArticle.challengeDuration,
             challengeStartDate: mainArticle.challengeStartDate,
-            challengeEndDate: mainArticle.challengeEndDate
+            challengeEndDate: mainArticle.challengeEndDate,
+            audioUrl: mainArticle.audioUrl,
+            media: mainArticle.media
           }}
         />
       </>
@@ -436,7 +444,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
               ...mainArticle,
               challengeDuration: mainArticle.challengeDuration,
               challengeStartDate: mainArticle.challengeStartDate,
-              challengeEndDate: mainArticle.challengeEndDate
+              challengeEndDate: mainArticle.challengeEndDate,
+              audioUrl: mainArticle.audioUrl,
+              media: mainArticle.media
             }}
           />
         </>
@@ -534,7 +544,9 @@ export default function HorizontalSlides({ mainArticle, subArticles }: Horizonta
                   articleType: article.articleType || mainArticle.articleType,
                   challengeDuration: mainArticle.challengeDuration,
                   challengeStartDate: mainArticle.challengeStartDate,
-                  challengeEndDate: mainArticle.challengeEndDate
+                  challengeEndDate: mainArticle.challengeEndDate,
+                  audioUrl: article.audioUrl,
+                  media: article.media
                 }}
               />
             </SwiperSlide>

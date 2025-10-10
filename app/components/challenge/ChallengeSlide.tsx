@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ChallengeProgressGraph from './ChallengeProgressGraph';
+import AudioPlayer from '../AudioPlayer';
 
 interface ChallengeSlideProps {
   article: {
@@ -12,6 +13,11 @@ interface ChallengeSlideProps {
     challengeStartDate?: Date | string | null;
     challengeEndDate?: Date | string | null;
     articleType?: string | null;
+    audioUrl?: string | null;
+    media?: {
+      id: string;
+      url: string;
+    } | null;
   };
   backgroundColor?: string;
   headingColor?: string;
@@ -25,6 +31,26 @@ export default function ChallengeSlide({
   subHeadingColor,
 }: ChallengeSlideProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [colors, setColors] = useState<{
+    dark: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
+    light: Record<string, { background: string; heading: string; subHeading: string; content: string }>;
+  } | null>(null);
+
+  // Fetch color settings
+  useEffect(() => {
+    const fetchColors = async () => {
+      try {
+        const response = await fetch('/api/settings/article-type-colors/public');
+        if (response.ok) {
+          const data = await response.json();
+          setColors(data);
+        }
+      } catch (error) {
+        console.error('Error fetching colors:', error);
+      }
+    };
+    fetchColors();
+  }, []);
 
   // Listen for theme changes
   useEffect(() => {
@@ -49,6 +75,114 @@ export default function ChallengeSlide({
     return () => observer.disconnect();
   }, []);
 
+  // Get article colors based on type and theme
+  const getColors = () => {
+    // Default colors for each article type in dark theme
+    const defaultDarkColors = {
+      meditation: {
+        background: '#1a1a1a',
+        heading: '#e5e7eb',
+        subHeading: '#d1d5db',
+        content: '#9ca3af'
+      },
+      education: {
+        background: '#1a1a1a',
+        heading: '#fbbf24',
+        subHeading: '#f59e0b',
+        content: '#d1d5db'
+      },
+      personal: {
+        background: '#1a1a1a',
+        heading: '#f87171',
+        subHeading: '#ef4444',
+        content: '#d1d5db'
+      },
+      spiritual: {
+        background: '#1a1a1a',
+        heading: '#a78bfa',
+        subHeading: '#8b5cf6',
+        content: '#d1d5db'
+      },
+      routine: {
+        background: '#1a1a1a',
+        heading: '#60a5fa',
+        subHeading: '#3b82f6',
+        content: '#d1d5db'
+      },
+      notSet: {
+        background: '#1a1a1a',
+        heading: '#e5e7eb',
+        subHeading: '#d1d5db',
+        content: '#9ca3af'
+      }
+    };
+
+    // Default colors for each article type in light theme
+    const defaultLightColors = {
+      meditation: {
+        background: '#ffffff',
+        heading: '#1f2937',
+        subHeading: '#374151',
+        content: '#4b5563'
+      },
+      education: {
+        background: '#f5e0e5',
+        heading: '#831843',
+        subHeading: '#9f1239',
+        content: '#1f2937'
+      },
+      personal: {
+        background: '#fde2e4',
+        heading: '#991b1b',
+        subHeading: '#b91c1c',
+        content: '#1f2937'
+      },
+      spiritual: {
+        background: '#e8e8e8',
+        heading: '#374151',
+        subHeading: '#4b5563',
+        content: '#1f2937'
+      },
+      routine: {
+        background: '#ffd7db',
+        heading: '#831843',
+        subHeading: '#9f1239',
+        content: '#1f2937'
+      },
+      notSet: {
+        background: '#ffc9cc',
+        heading: '#991b1b',
+        subHeading: '#b91c1c',
+        content: '#1f2937'
+      }
+    };
+
+    const defaultColors = theme === 'dark' ? defaultDarkColors : defaultLightColors;
+    const articleTypeKey = article.articleType || 'notSet';
+
+    if (colors) {
+      const colorSet = theme === 'dark' ? colors.dark : colors.light;
+      // Check if colors are in old format (string) or new format (object)
+      if (colorSet[articleTypeKey]) {
+        if (typeof colorSet[articleTypeKey] === 'string') {
+          // Old format - use defaults for text colors
+          return {
+            background: colorSet[articleTypeKey],
+            heading: defaultColors[articleTypeKey as keyof typeof defaultColors].heading,
+            subHeading: defaultColors[articleTypeKey as keyof typeof defaultColors].subHeading,
+            content: defaultColors[articleTypeKey as keyof typeof defaultColors].content
+          };
+        } else {
+          // New format - use custom colors
+          return colorSet[articleTypeKey];
+        }
+      }
+    }
+
+    // Fallback to defaults if colors haven't loaded
+    return defaultColors[articleTypeKey as keyof typeof defaultColors] || defaultColors.notSet;
+  };
+
   // Calculate challenge status
   const getStatus = () => {
     if (!article.challengeStartDate || !article.challengeEndDate) {
@@ -69,12 +203,13 @@ export default function ChallengeSlide({
   };
 
   const status = getStatus();
+  const articleColors = getColors();
 
   return (
     <div
       className="h-full w-full flex items-center justify-center relative"
       style={{
-        backgroundColor: backgroundColor || (theme === 'dark' ? '#1a1a1a' : '#ffffff'),
+        backgroundColor: backgroundColor || articleColors.background,
       }}
     >
       <div className="w-full max-w-2xl px-6 space-y-6">
@@ -83,7 +218,7 @@ export default function ChallengeSlide({
           {/* Title */}
           <h1
             className="text-3xl font-bold"
-            style={{ color: headingColor || (theme === 'dark' ? '#ffffff' : '#000000') }}
+            style={{ color: headingColor || articleColors.heading }}
           >
             {article.title}
           </h1>
@@ -92,7 +227,7 @@ export default function ChallengeSlide({
           {article.subtitle && (
             <p
               className="text-lg opacity-80"
-              style={{ color: subHeadingColor || (theme === 'dark' ? '#d1d5db' : '#4b5563') }}
+              style={{ color: subHeadingColor || articleColors.subHeading }}
             >
               {article.subtitle}
             </p>
@@ -107,8 +242,8 @@ export default function ChallengeSlide({
               <span
                 className="text-xs px-3 py-1 rounded-full font-medium"
                 style={{
-                  backgroundColor: subHeadingColor ? `${subHeadingColor}20` : 'rgba(107, 114, 128, 0.1)',
-                  color: subHeadingColor || '#6b7280',
+                  backgroundColor: subHeadingColor ? `${subHeadingColor}20` : `${articleColors.subHeading}20`,
+                  color: subHeadingColor || articleColors.subHeading,
                 }}
               >
                 {article.articleType}
@@ -127,6 +262,17 @@ export default function ChallengeSlide({
           startDate={article.challengeStartDate || null}
           endDate={article.challengeEndDate || null}
         />
+
+        {/* Audio Player - Only show if audio is available */}
+        {(article.audioUrl || article.media?.url) && (
+          <div className="flex justify-center">
+            <AudioPlayer
+              audioUrl={article.audioUrl || article.media?.url || ''}
+              title={article.title}
+              articleId={article.id}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
