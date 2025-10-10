@@ -116,12 +116,10 @@ export default function ArticlesSwiper({ initialArticles }: ArticlesSwiperProps)
       {/* Home Icon - Top Left Corner */}
       <button
         onClick={() => {
-          if (swiperRef.current) {
-            swiperRef.current.slideTo(0)
-          }
+          window.location.reload()
         }}
         className="fixed top-6 left-6 z-50 w-8 h-8 flex items-center justify-center transition-all duration-200 group"
-        aria-label="Go to first slide"
+        aria-label="Reload page"
       >
         <img
           src="/media/icon-96x96.png"

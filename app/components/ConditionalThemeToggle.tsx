@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import RightSideDrawer from './ui/RightSideDrawer'
+import DrawerMenu from './DrawerMenu'
 
 export default function ConditionalThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -50,31 +53,45 @@ export default function ConditionalThemeToggle() {
     window.location.reload()
   }
 
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen)
+  }
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false)
+  }
+
   // Don't show on admin pages (AdminLayout handles it) or when not authenticated
   const isAdminPage = pathname?.startsWith('/admin')
 
   if (!mounted || isAdminPage || !isAuthenticated) return null
 
   return (
-    <div className="fixed top-6 right-6 z-50 flex gap-2">
-      <button
-        onClick={toggleTheme}
-        className="p-2 transition-opacity hover:opacity-70"
-        aria-label="Toggle theme"
-      >
-        <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">
-          {theme === 'light' ? 'dark_mode' : 'light_mode'}
-        </span>
-      </button>
-      <button
-        onClick={handleLogout}
-        className="p-2 transition-opacity hover:opacity-70"
-        aria-label="Logout"
-      >
-        <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">
-          logout
-        </span>
-      </button>
-    </div>
+    <>
+      <div className="fixed top-6 right-6 z-50 flex gap-2">
+        <button
+          onClick={toggleTheme}
+          className="p-2 transition-opacity hover:opacity-70"
+          aria-label="Toggle theme"
+        >
+          <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">
+            {theme === 'light' ? 'dark_mode' : 'light_mode'}
+          </span>
+        </button>
+        <button
+          onClick={toggleDrawer}
+          className="p-2 transition-opacity hover:opacity-70"
+          aria-label="Open menu"
+        >
+          <span className="material-icons text-gray-800 dark:text-gray-200 text-2xl">
+            menu
+          </span>
+        </button>
+      </div>
+
+      <RightSideDrawer isOpen={isDrawerOpen} onClose={closeDrawer}>
+        <DrawerMenu onLogout={handleLogout} onClose={closeDrawer} />
+      </RightSideDrawer>
+    </>
   )
 }
